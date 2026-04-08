@@ -21,11 +21,14 @@ export const getSquads = async (userId) => {
       orderBy('updatedAt', 'desc')
     );
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      updatedAt: doc.data().updatedAt?.toDate() || new Date(),
-    }));
+    return querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        ...data,
+        id: doc.id, // ID must come AFTER data spread to prevent being overwritten by null/undefined in doc data
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+      };
+    });
   } catch (err) {
     console.error('Error fetching squads:', err);
     return [];

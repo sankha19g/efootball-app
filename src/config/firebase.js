@@ -1,24 +1,36 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { initializeApp, getApps } from 'firebase/app';
+import { 
+  initializeAuth, 
+  getAuth, 
+  getReactNativePersistence 
+} from 'firebase/auth'; 
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyDpvjE8VgKVHH_OaPcgj6shiBomJm-oSnc",
+  authDomain: "efootball-8c9c5.firebaseapp.com",
+  projectId: "efootball-8c9c5",
+  storageBucket: "efootball-8c9c5.firebasestorage.app",
+  messagingSenderId: "218547227716",
+  appId: "1:218547227716:web:a80b27553493e8d8af0011",
 };
 
-// Prevent multiple initializations
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+// Safe singleton check
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
-export const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
+// Secure React Native Persistence for Auth
+let auth;
+try {
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage)
+  });
+} catch (e) {
+  // Handle if already initialized (hot reload)
+  auth = getAuth(app);
+}
 
+export { auth };
 export const db = getFirestore(app);
 export const storage = getStorage(app);

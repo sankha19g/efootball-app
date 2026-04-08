@@ -1,0 +1,132 @@
+{
+  "title": "How useful are Individual Instructions: A case study of 3ATB formations ",
+  "content": [
+    {
+      "type": "text",
+      "value": " I was very happy and excited when Individual Instructions came to eFootball 2024 mobile. I'm sure most of us have played around trying to take advantage of Individual Instructions to overcome some of our favorite players' unique flaws due to their undesirable play styles. I have also seen some interesting ideas utilizing Individual Instructions for tactical setup. I want to add my own opinions and I would love to see more ideas being shared here.WARNING: A long wall of text ahead and no TLDR waiting for you at the end.\n\nFor a recap, we currently have the following Individual Instructions in the game: "
+
+    },
+    {
+      "type": "text",
+      "value": "### ATTACK INSTRUCTIONS"
+    },
+    {
+      "type": "image",
+      "url": "https://preview.redd.it/4dm3bm4duqdd1.png?width=2532&format=png&auto=webp&s=1e89044dc63331bb70aed034bd8ba3970d314022",
+      "caption": "Attack Instructions Overview"
+    },
+    {
+      "type": "text",
+      "value": "### DEFENSIVE"
+    },
+    {
+      "type": "text",
+      "value": "Useful for improving the defense. Example: prevent an attacking full-back from pushing forward, effectively turning them into a defensive full-back. Alternatively, prevent a B2B or Destroyer DMF from pushing forward."
+    },
+    {
+      "type": "image",
+      "url": "https://preview.redd.it/noxxm5mkuqdd1.png?width=2532&format=png&auto=webp&s=7edc98b86e0dcbdef124c5b2d58a480522a293a4",
+      "caption": "Setting up Defensive Instructions"
+    },
+    {
+      "type": "text",
+      "value": "### ATTACKING"
+    },
+    {
+      "type": "text",
+      "value": "Useful for increasing the number of players in attack. Misconception: It doesn't make a player 'more proactive'. Instead, it moves them up one line (e.g., a defender joins the midfield). It doesn't apply to forwards."
+    },
+    {
+      "type": "image",
+      "url": "https://preview.redd.it/3w1xhfmkuqdd1.png?width=2532&format=png&auto=webp&s=b54d02451d3628422c2ed29e24d1e39791b6980f",
+      "caption": "Attacking Instruction Logic"
+    },
+    {
+      "type": "text",
+      "value": "### ANCHORING"
+    },
+    {
+      "type": "text",
+      "value": "Helps replicate a 'Cross Specialist' movement. Best on wingers to keep them wide.\n\n### DEFENSE INSTRUCTIONS"
+    },
+    {
+      "type": "image",
+      "url": "https://preview.redd.it/agbektcpuqdd1.png?width=2532&format=png&auto=webp&s=1420a49083e2f74d1d587d7c3fc92bf8d8184092",
+      "caption": "Defense Instructions Overview"
+    },
+    {
+      "type": "text",
+      "value": "### TIGHT MARKING"
+    },
+    {
+      "type": "text",
+      "value": "Well-explained in-game. Use sparingly as they leave gaps."
+    },
+    {
+      "type": "image",
+      "url": "https://preview.redd.it/6aelyffsuqdd1.png?width=2532&format=png&auto=webp&s=633b58ac551b6fae1f13b7622f826b69125c9d9b",
+      "caption": "Applying Tight Marking"
+    },
+    {
+      "type": "text",
+      "value": "### COUNTER TARGET"
+    },
+    {
+      "type": "text",
+      "value": "Keeps the player forward. They won't help with defense or double pressing."
+    },
+    {
+      "type": "image",
+      "url": "https://preview.redd.it/3s1g0jouuqdd1.png?width=2532&format=png&auto=webp&s=66600d3280f06442aeea0baba7303ae357f0226e",
+      "caption": "Counter Target Effect"
+    },
+    {
+      "type": "text",
+      "value": "### DEEP LINE"
+    },
+    {
+      "type": "text",
+      "value": "The opposite of Attacking. The player drops one line when defending (e.g., a midfielder joins the defense)."
+    },
+    {
+      "type": "image",
+      "url": "https://preview.redd.it/xxbapazwuqdd1.png?width=2532&format=png&auto=webp&s=fd456f649c4e4e99ecb358a9e2bb13f0af328d47",
+      "caption": "Deep Line Strategic Drop"
+    },
+    {
+      "type": "text",
+      "value": "### A CASE STUDY: 3ATB FORMATIONS"
+    },
+    {
+      "type": "text",
+      "value": "3ATB formations allow flexibility and domination in buildup but are extremely vulnerable on the counter. Specifically, the open space behind the LMF and RMF is a major weakness."
+    },
+    {
+      "type": "image",
+      "url": "https://preview.redd.it/nxk9zmehvqdd1.png?width=2360&format=png&auto=webp&s=8f1432ca5d0d397fb60aedd1194cd9f1921fd2b9",
+      "caption": "Vulnerability of 3-at-the-back"
+    },
+    {
+      "type": "text",
+      "value": "### THE SOLUTION: DEEP LINE ANCHOR MAN"
+    },
+    {
+      "type": "text",
+      "value": "My preferred approach is putting 'Deep Line' on an Anchor Man DMF. This setup allows the DMF to join the defense and form a back-4 only when defending. This provides the solidity needed to stop quick counters."
+    },
+    {
+      "type": "image",
+      "url": "https://preview.redd.it/mhl3gc9owqdd1.png?width=2360&format=png&auto=webp&s=a1a74005db7d97597a1aa60a012ef25dcde0d106",
+      "caption": "Tactical Execution: Anchor Man falling back"
+    },
+    {
+      "type": "text",
+      "value": "### CURRENT SETUP EXAMPLE"
+    },
+    {
+      "type": "image",
+      "url": "https://preview.redd.it/zh8yg2m09wdd1.png?width=2532&format=png&auto=webp&s=21bd6c2209bfc7db936863a6b0b4ab1b494265fc",
+      "caption": "My Tactical Setup"
+    }
+  ]
+}

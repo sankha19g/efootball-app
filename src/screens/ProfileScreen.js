@@ -7,7 +7,10 @@ import SettingsScreen from './SettingsScreen';
 import ProfileStatsScreen from './ProfileStatsScreen';
 import { Modal } from 'react-native';
 
-const ProfileScreen = ({ user, settings, setSettings, players, setPlayers }) => {
+import { useAppContext } from '../../App';
+
+const ProfileScreen = () => {
+  const { user, settings, setSettings, players, setPlayers, squads } = useAppContext();
   const [showSettings, setShowSettings] = React.useState(false);
   const [showStats, setShowStats] = React.useState(false);
 
@@ -45,50 +48,50 @@ const ProfileScreen = ({ user, settings, setSettings, players, setPlayers }) => 
             <Text style={styles.statLabel}>RANK</Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statVal}>128</Text>
+            <Text style={styles.statVal}>{players?.length || 0}</Text>
             <Text style={styles.statLabel}>PLAYERS</Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statVal}>9</Text>
+            <Text style={styles.statVal}>{squads?.length || 0}</Text>
             <Text style={styles.statLabel}>SQUADS</Text>
           </View>
         </View>
 
         <View style={styles.menu}>
-            <TouchableOpacity style={styles.menuItem}>
-                <Text style={styles.menuIcon}>👤</Text>
-                <Text style={styles.menuText}>Edit Profile</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.menuItem}
-              onPress={() => setShowSettings(true)}
-            >
-                <Text style={styles.menuIcon}>⚙️</Text>
-                <Text style={styles.menuText}>App Settings</Text>
-            </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem}>
+            <Text style={styles.menuIcon}>👤</Text>
+            <Text style={styles.menuText}>Edit Profile</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => setShowSettings(true)}
+          >
+            <Text style={styles.menuIcon}>⚙️</Text>
+            <Text style={styles.menuText}>App Settings</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.menuItem}
-              onPress={() => setShowStats(true)}
-            >
-                <Text style={styles.menuIcon}>📊</Text>
-                <Text style={styles.menuText}>My Profile Statistics</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
-                <Text style={styles.menuIcon}>🛡️</Text>
-                <Text style={styles.menuText}>Privacy & Security</Text>
-            </TouchableOpacity>
-            
-            <View style={styles.divider} />
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => setShowStats(true)}
+          >
+            <Text style={styles.menuIcon}>📊</Text>
+            <Text style={styles.menuText}>My Profile Statistics</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem}>
+            <Text style={styles.menuIcon}>🛡️</Text>
+            <Text style={styles.menuText}>Privacy & Security</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-                <LinearGradient
-                    colors={['#FF4444', '#CC0000']}
-                    style={styles.logoutGrad}
-                >
-                    <Text style={styles.logoutText}>LOGOUT ACCOUNT</Text>
-                </LinearGradient>
-            </TouchableOpacity>
+          <View style={styles.divider} />
+
+          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+            <LinearGradient
+              colors={['#FF4444', '#CC0000']}
+              style={styles.logoutGrad}
+            >
+              <Text style={styles.logoutText}>LOGOUT ACCOUNT</Text>
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
 
         <Modal
@@ -97,13 +100,13 @@ const ProfileScreen = ({ user, settings, setSettings, players, setPlayers }) => 
           transparent={false}
           onRequestClose={() => setShowSettings(false)}
         >
-          <SettingsScreen 
-            settings={settings} 
-            setSettings={setSettings} 
+          <SettingsScreen
+            settings={settings}
+            setSettings={setSettings}
             players={players}
             setPlayers={setPlayers}
             user={user}
-            onClose={() => setShowSettings(false)} 
+            onClose={() => setShowSettings(false)}
           />
         </Modal>
 
@@ -113,15 +116,15 @@ const ProfileScreen = ({ user, settings, setSettings, players, setPlayers }) => 
           transparent={false}
           onRequestClose={() => setShowStats(false)}
         >
-          <ProfileStatsScreen 
+          <ProfileStatsScreen
             players={players}
-            onClose={() => setShowStats(false)} 
+            onClose={() => setShowStats(false)}
           />
         </Modal>
 
         <View style={styles.footer}>
-            <Text style={styles.footerText}>EFOOTBALL STATS TRACKER</Text>
-            <Text style={styles.footerText}>USER ID: {user.uid.substring(0, 12)}...</Text>
+          <Text style={styles.footerText}>EFOOTBALL STATS TRACKER</Text>
+          <Text style={styles.footerText}>USER ID: {user.uid.substring(0, 12)}...</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

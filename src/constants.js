@@ -72,3 +72,37 @@ export const getCardGradient = (type) => {
     default: return ['#1a3a6b', '#0d2147'];
   }
 };
+
+export const SQUAD_FORMATIONS = {
+  '4-3-3': [
+    { pos: 'GK', x: 50, y: 88, role: 'GK' },
+    { pos: 'CB', x: 35, y: 72, role: 'CB' }, { pos: 'CB', x: 65, y: 72, role: 'CB' },
+    { pos: 'LB', x: 15, y: 68, role: 'LB' }, { pos: 'RB', x: 85, y: 68, role: 'RB' },
+    { pos: 'CMF', x: 50, y: 52, role: 'CMF' }, { pos: 'CMF', x: 28, y: 48, role: 'CMF' }, { pos: 'CMF', x: 72, y: 48, role: 'CMF' },
+    { pos: 'LWF', x: 20, y: 22, role: 'LWF' }, { pos: 'RWF', x: 80, y: 22, role: 'RWF' }, { pos: 'CF', x: 50, y: 12, role: 'CF' }
+  ],
+  '4-4-2': [
+    { pos: 'GK', x: 50, y: 88, role: 'GK' },
+    { pos: 'CB', x: 35, y: 72, role: 'CB' }, { pos: 'CB', x: 65, y: 72, role: 'CB' },
+    { pos: 'LB', x: 15, y: 68, role: 'LB' }, { pos: 'RB', x: 85, y: 68, role: 'RB' },
+    { pos: 'LMF', x: 15, y: 42, role: 'LMF' }, { pos: 'RMF', x: 85, y: 42, role: 'RMF' },
+    { pos: 'CMF', x: 35, y: 48, role: 'CMF' }, { pos: 'CMF', x: 65, y: 48, role: 'CMF' },
+    { pos: 'CF', x: 35, y: 18, role: 'CF' }, { pos: 'CF', x: 65, y: 18, role: 'CF' }
+  ],
+  '3-2-4-1': [
+    { pos: 'GK', x: 50, y: 88, role: 'GK' },
+    { pos: 'CB', x: 50, y: 72, role: 'CB' }, { pos: 'CB', x: 25, y: 72, role: 'CB' }, { pos: 'CB', x: 75, y: 72, role: 'CB' },
+    { pos: 'DMF', x: 35, y: 58, role: 'DMF' }, { pos: 'DMF', x: 65, y: 58, role: 'DMF' },
+    { pos: 'AMF', x: 35, y: 38, role: 'AMF' }, { pos: 'AMF', x: 65, y: 38, role: 'AMF' },
+    { pos: 'LMF', x: 15, y: 38, role: 'LMF' }, { pos: 'RMF', x: 85, y: 38, role: 'RMF' },
+    { pos: 'CF', x: 50, y: 12, role: 'CF' }
+  ],
+  'CUSTOM': [
+    { pos: 'GK', x: 50, y: 88, role: 'GK' },
+    { pos: 'CB', x: 35, y: 72, role: 'CB' }, { pos: 'CB', x: 65, y: 72, role: 'CB' },
+    { pos: 'LB', x: 15, y: 68, role: 'LB' }, { pos: 'RB', x: 85, y: 68, role: 'RB' },
+    { pos: 'CMF', x: 50, y: 52, role: 'CMF' }, { pos: 'CMF', x: 28, y: 48, role: 'CMF' }, { pos: 'CMF', x: 72, y: 48, role: 'CMF' },
+    { pos: 'LWF', x: 20, y: 22, role: 'LWF' }, { pos: 'RWF', x: 80, y: 22, role: 'RWF' }, { pos: 'CF', x: 50, y: 12, role: 'CF' }
+  ]
+};
+

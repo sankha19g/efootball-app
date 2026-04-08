@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,64 +10,78 @@ import {
   ActivityIndicator,
   Dimensions,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { searchGlobalFirestore, getRecentGlobalPlayers, addPlayersBulk } from '../services/playerService';
 import { COLORS } from '../constants';
 import { getPlayerBadge } from '../utils/imageUtils';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 3;
+const BATCH_SIZE = 240;
 
 const DatabasePlayerScreen = ({ userId, ownersPlayers = [], onBack, onAddComplete, showAlert }) => {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState(new Set());
-  const [resultsCount, setResultsCount] = useState(0);
+  const [lastDoc, setLastDoc] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const existingIds = new Set(ownersPlayers.map(p => p.pesdb_id || p.playerId).filter(id => id));
 
-  const fetchInitial = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await getRecentGlobalPlayers(60);
-      setPlayers(data || []);
-      setResultsCount(data?.length || 0);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const fetchPlayers = useCallback(async (isInitial = true) => {
+    if (loadingMore || (isInitial && loading)) return;
 
-  const handleSearch = useCallback(async (text) => {
-    setSearch(text);
-    if (text.length < 2) {
-      if (text.length === 0) fetchInitial();
-      return;
+    if (isInitial) {
+      setLoading(true);
+      setLastDoc(null);
+    } else {
+      setLoadingMore(true);
     }
 
-    setLoading(true);
     try {
-      const data = await searchGlobalFirestore(text);
-      setPlayers(data || []);
-      setResultsCount(data?.length || 0);
-    } catch (err) {
-      console.error(err);
+      const result = searchQuery.length >= 2
+        ? await searchGlobalFirestore(searchQuery, isInitial ? null : lastDoc)
+        : await getRecentGlobalPlayers(BATCH_SIZE, isInitial ? null : lastDoc);
+
+      const newPlayers = result.players || [];
+      const nextDoc = result.lastDoc;
+
+      if (isInitial) {
+        setPlayers(newPlayers);
+      } else {
+        setPlayers(prev => [...prev, ...newPlayers]);
+      }
+      setLastDoc(nextDoc);
+      setHasMore(newPlayers.length === BATCH_SIZE);
+    } catch (error) {
+      console.error('Fetch error:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+      setRefreshing(false);
     }
-  }, [fetchInitial]);
+  }, [searchQuery, lastDoc, loading, loadingMore]);
+
+  const handleLoadMore = () => {
+    if (hasMore && !loadingMore && !loading) {
+      fetchPlayers(false);
+    }
+  };
 
   useEffect(() => {
-    fetchInitial();
-  }, [fetchInitial]);
+    fetchPlayers(true);
+  }, [searchQuery]);
 
   const toggleSelect = (player) => {
     const id = player.id;
     if (existingIds.has(id)) return;
-    
+
     setSelectedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -78,7 +92,7 @@ const DatabasePlayerScreen = ({ userId, ownersPlayers = [], onBack, onAddComplet
 
   const handleConfirm = async () => {
     if (selectedIds.size === 0) return;
-    
+
     const playersToMap = players.filter(p => selectedIds.has(p.id));
     const playersToAdd = playersToMap.map(p => ({
       name: p.name,
@@ -121,11 +135,11 @@ const DatabasePlayerScreen = ({ userId, ownersPlayers = [], onBack, onAddComplet
     const isSelected = selectedIds.has(item.id);
 
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
         onPress={() => toggleSelect(item)}
         activeOpacity={0.7}
         style={[
-          styles.playerCard, 
+          styles.playerCard,
           isSelected && styles.playerCardSelected,
           isOwned && styles.playerCardOwned
         ]}
@@ -136,8 +150,8 @@ const DatabasePlayerScreen = ({ userId, ownersPlayers = [], onBack, onAddComplet
             <View style={styles.posBadge}>
               <Text style={styles.posText}>{item.position}</Text>
             </View>
-            {isSelected && <View style={styles.checkCircle}><Text style={styles.checkText}>✓</Text></View>}
-            {isOwned && <View style={styles.ownedBadge}><Text style={styles.ownedText}>OWNED</Text></View>}
+            {isSelected && <View style={styles.checkCircle}><MaterialCommunityIcons name="check" size={14} color="white" /></View>}
+            {isOwned && <View style={styles.ownedBadge}><Text style={styles.ownedText}>SQUAD</Text></View>}
           </View>
           <View style={styles.cardBottom}>
             <Text style={styles.playerName} numberOfLines={1}>{item.name}</Text>
@@ -152,15 +166,15 @@ const DatabasePlayerScreen = ({ userId, ownersPlayers = [], onBack, onAddComplet
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-          <Text style={styles.backIcon}>←</Text>
+          <MaterialCommunityIcons name="chevron-left" size={32} color="white" />
         </TouchableOpacity>
         <View style={styles.headerTitleWrap}>
-          <Text style={styles.headerTitle}>EXPLORER</Text>
-          <Text style={styles.headerSub}>{resultsCount} PLAYERS FOUND</Text>
+          <Text style={styles.headerTitle}>SCOUTING</Text>
+          <Text style={styles.headerSub}>GLOBAL DATABASE</Text>
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           disabled={selectedIds.size === 0}
-          onPress={handleConfirm} 
+          onPress={handleConfirm}
           style={[styles.confirmBtn, selectedIds.size === 0 && styles.confirmBtnDisabled]}
         >
           <Text style={styles.confirmBtnText}>ADD ({selectedIds.size})</Text>
@@ -168,86 +182,246 @@ const DatabasePlayerScreen = ({ userId, ownersPlayers = [], onBack, onAddComplet
       </View>
 
       <View style={styles.searchBarWrap}>
-        <TextInput
-          style={styles.searchBar}
-          placeholder="Search global database..."
-          placeholderTextColor="rgba(255,255,255,0.3)"
-          value={search}
-          onChangeText={handleSearch}
-        />
-        {loading && <ActivityIndicator style={styles.loader} color={COLORS.accent} />}
+        <View style={styles.searchContainer}>
+          <MaterialCommunityIcons name="magnify" size={20} color="rgba(255,255,255,0.4)" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchBar}
+            placeholder="Search 11,000+ players..."
+            placeholderTextColor="rgba(255,255,255,0.3)"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearBtn}>
+              <MaterialCommunityIcons name="close-circle" size={18} color="rgba(255,255,255,0.2)" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
-      <FlatList
-        data={players}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        numColumns={3}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading ? (
+        <View style={styles.loadingFull}>
+          <ActivityIndicator size="large" color="#00ffcc" />
+          <Text style={styles.loadingText}>Fetching database...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={players}
+          keyExtractor={(item) => (item.id || item.pesdb_id).toString()}
+          renderItem={renderItem}
+          numColumns={3}
+          contentContainerStyle={styles.listContent}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          onRefresh={() => fetchPlayers(true)}
+          refreshing={refreshing}
+          ListFooterComponent={() => (
+            loadingMore ? (
+              <View style={styles.footerLoader}>
+                <ActivityIndicator size="small" color="#00ffcc" />
+              </View>
+            ) : null
+          )}
+          ListEmptyComponent={
+            !loading && (
+              <View style={styles.emptyContainer}>
+                <MaterialCommunityIcons name="account-search-outline" size={64} color="rgba(255,255,255,0.1)" />
+                <Text style={styles.emptyText}>No players found</Text>
+              </View>
+            )
+          }
+        />
+      )}
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0a0c' },
-  header: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingHorizontal: 16, 
+  container: {
+    flex: 1,
+    backgroundColor: '#0a0a0a',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)'
+    borderBottomColor: 'rgba(255,255,255,0.05)',
   },
-  backBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.05)', justifyContent: 'center', alignItems: 'center' },
-  backIcon: { color: '#fff', fontSize: 20 },
-  headerTitleWrap: { flex: 1, marginLeft: 12 },
-  headerTitle: { color: '#fff', fontSize: 18, fontWeight: '900', fontStyle: 'italic' },
-  headerSub: { color: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: '700', letterSpacing: 1 },
-  confirmBtn: { paddingHorizontal: 16, height: 40, backgroundColor: COLORS.accent, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  confirmBtnDisabled: { backgroundColor: 'rgba(255,255,255,0.1)' },
-  confirmBtnText: { color: '#000', fontWeight: '900', fontSize: 12 },
-
-  searchBarWrap: { padding: 16, position: 'relative' },
-  searchBar: { 
-    height: 50, 
-    backgroundColor: 'rgba(255,255,255,0.03)', 
-    borderWidth: 1, 
-    borderColor: 'rgba(255,255,255,0.08)', 
-    borderRadius: 15, 
-    paddingHorizontal: 16, 
+  backBtn: {
+    marginRight: 12,
+  },
+  headerTitleWrap: {
+    flex: 1,
+  },
+  headerTitle: {
     color: '#fff',
-    fontSize: 14,
-    fontWeight: '600'
+    fontSize: 20,
+    fontWeight: '900',
+    letterSpacing: 1,
   },
-  loader: { position: 'absolute', right: 26, top: 31 },
-
-  list: { padding: 12 },
-  playerCard: { 
-    width: CARD_WIDTH, 
-    aspectRatio: 0.7, 
-    margin: 4, 
-    borderRadius: 15, 
-    overflow: 'hidden',
-    backgroundColor: '#1a1d24',
+  headerSub: {
+    color: '#00ffcc',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 2,
+    marginTop: -2,
+  },
+  confirmBtn: {
+    backgroundColor: '#00ffcc',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    shadowColor: '#00ffcc',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  confirmBtnDisabled: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  confirmBtnText: {
+    color: '#000',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  searchBarWrap: {
+    padding: 16,
+    paddingBottom: 8,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 44,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)'
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  playerCardSelected: { borderColor: COLORS.accent, borderWidth: 2 },
-  playerCardOwned: { opacity: 0.6 },
-  playerImage: { width: '100%', height: '100%', position: 'absolute' },
-  cardOverlay: { flex: 1, padding: 8, justifyContent: 'space-between' },
-  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  posBadge: { paddingHorizontal: 6, py: 2, backgroundColor: COLORS.accent, borderRadius: 4 },
-  posText: { color: '#000', fontSize: 10, fontWeight: '900' },
-  checkCircle: { width: 16, height: 16, borderRadius: 8, backgroundColor: COLORS.accent, justifyContent: 'center', alignItems: 'center' },
-  checkText: { color: '#000', fontSize: 10, fontWeight: '900' },
-  ownedBadge: { paddingHorizontal: 4, py: 1, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
-  ownedText: { color: COLORS.accent, fontSize: 8, fontWeight: '900' },
-  cardBottom: { gap: 2 },
-  playerName: { color: '#fff', fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
-  playerSub: { color: 'rgba(255,255,255,0.4)', fontSize: 8, fontWeight: '600' },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchBar: {
+    flex: 1,
+    color: '#fff',
+    fontSize: 15,
+  },
+  clearBtn: {
+    padding: 4,
+  },
+  listContent: {
+    padding: 12,
+  },
+  playerCard: {
+    width: CARD_WIDTH,
+    height: CARD_WIDTH * 1.3,
+    margin: 4,
+    borderRadius: 12,
+    backgroundColor: '#1a1a1a',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  playerCardSelected: {
+    borderColor: '#00ffcc',
+    borderWidth: 2,
+  },
+  playerCardOwned: {
+    opacity: 0.8,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  playerImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  cardOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    top: 0,
+    justifyContent: 'space-between',
+    padding: 6,
+  },
+  cardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  posBadge: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  posText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  checkCircle: {
+    backgroundColor: '#00ffcc',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ownedBadge: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  ownedText: {
+    color: '#fff',
+    fontSize: 8,
+    fontWeight: '800',
+  },
+  cardBottom: {
+    marginTop: 'auto',
+  },
+  playerName: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '800',
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  playerSub: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 9,
+    fontWeight: '600',
+  },
+  loadingFull: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 12,
+    fontSize: 14,
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    padding: 60,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: 'rgba(255,255,255,0.3)',
+    marginTop: 16,
+    fontSize: 16,
+  },
 });
 
 export default DatabasePlayerScreen;

@@ -20,7 +20,12 @@ const Dropdown = ({
   value, 
   onSelect, 
   placeholder = 'Select...', 
-  searchable = false 
+  searchable = false,
+  children,
+  containerStyle,
+  triggerStyle,
+  triggerTextStyle,
+  labelStyle,
 }) => {
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState('');
@@ -36,17 +41,23 @@ const Dropdown = ({
   };
 
   return (
-    <View style={styles.container}>
-      {label && <Text style={styles.label}>{label}</Text>}
-      <TouchableOpacity 
-        style={styles.trigger} 
-        onPress={() => setVisible(true)}
-      >
-        <Text style={[styles.triggerText, !value && styles.placeholder]}>
-          {value || placeholder}
-        </Text>
-        <Ionicons name="chevron-down" size={16} color={COLORS.textMuted} />
-      </TouchableOpacity>
+    <View style={[styles.container, containerStyle]}>
+      {label && <Text style={[styles.label, labelStyle]}>{label}</Text>}
+      {children ? (
+        <TouchableOpacity onPress={() => setVisible(true)}>
+          {children}
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity 
+          style={[styles.trigger, triggerStyle]} 
+          onPress={() => setVisible(true)}
+        >
+          <Text style={[styles.triggerText, !value && styles.placeholder, triggerTextStyle]}>
+            {value || placeholder}
+          </Text>
+          <Ionicons name="chevron-down" size={16} color={COLORS.textMuted} />
+        </TouchableOpacity>
+      )}
 
       <Modal
         visible={visible}

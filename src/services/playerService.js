@@ -13,12 +13,15 @@ import {
   getDoc,
   where,
   limit as firestoreLimit,
+  startAfter,
 } from 'firebase/firestore';
 
 const PLAYERS_COLLECTION = 'players';
 const GLOBAL_DB_COLLECTION = 'global_database';
 const IMGBB_API_KEY = process.env.EXPO_PUBLIC_IMGBB_API_KEY;
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5001';
+
+console.log('📡 Engine initialized with API_URL:', API_URL);
 
 export const getPlayers = async (userId) => {
   if (!userId) return [];
@@ -133,49 +136,113 @@ export const uploadBase64Image = async (userId, base64String) => {
   }
 };
 
-export const searchGlobalFirestore = async (nameQuery) => {
-  if (!nameQuery || nameQuery.length < 2) return [];
+export const searchGlobalFirestore = async (nameQuery, startAfterDoc = null) => {
+  if (!nameQuery || nameQuery.length < 2) return { players: [], lastDoc: null };
+
   try {
-    const q = query(
+    const queryText = nameQuery.toLowerCase();
+
+    // 1. Direct ID Lookup (Strongest match for manual/specific players)
+    if (/^\d{5,}/.test(nameQuery)) {
+        const docRef = doc(db, GLOBAL_DB_COLLECTION, nameQuery);
+        const d = await getDoc(docRef);
+        if (d.exists()) {
+            return { players: [{ id: d.id, ...d.data() }], lastDoc: null };
+        }
+    }
+
+    // 2. Optimized Search by 'search_name'
+    let q = query(
       collection(db, GLOBAL_DB_COLLECTION),
-      where('search_name', '>=', nameQuery.toLowerCase()),
-      where('search_name', '<=', nameQuery.toLowerCase() + '\uf8ff'),
+      where('search_name', '>=', queryText),
+      where('search_name', '<=', queryText + '\uf8ff'),
       firestoreLimit(20)
     );
+
+    if (startAfterDoc) {
+      q = query(q, startAfter(startAfterDoc));
+    }
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => doc.data());
+    let players = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    let lastDoc = snapshot.docs[snapshot.docs.length - 1];
+
+    // 3. Fallback to 'name' field if search_name search yielded nothing (for legacy/manual docs)
+    if (players.length === 0 && !startAfterDoc) {
+        const qFallback = query(
+            collection(db, GLOBAL_DB_COLLECTION),
+            where('name', '>=', nameQuery),
+            where('name', '<=', nameQuery + '\uf8ff'),
+            firestoreLimit(20)
+        );
+        const snapFallback = await getDocs(qFallback);
+        players = snapFallback.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        lastDoc = snapFallback.docs[snapFallback.docs.length - 1];
+    }
+
+    return { players, lastDoc };
   } catch (err) {
-    console.error('Global Firestore search error:', err);
-    return [];
+    console.error("Global Firestore search error:", err);
+    return { players: [], lastDoc: null };
   }
 };
 
-export const getRecentGlobalPlayers = async (limitNum = 50) => {
+export const getRecentGlobalPlayers = async (limitNum = 20, startAfterDoc = null) => {
   try {
-    const q = query(
+    let q = query(
       collection(db, GLOBAL_DB_COLLECTION),
       orderBy('lastUpdated', 'desc'),
       firestoreLimit(limitNum)
     );
+
+    if (startAfterDoc) {
+      q = query(q, startAfter(startAfterDoc));
+    }
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => doc.data());
+    const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+    const players = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    return { players, lastDoc };
   } catch (err) {
-    console.error('Error fetching recent global players:', err);
-    return [];
+    console.error("Error fetching recent global players:", err);
+    // If there's an index error, fallback to no ordering temporarily
+    if (err.message?.includes('index')) {
+        let fallbackQuery = query(
+            collection(db, GLOBAL_DB_COLLECTION),
+            firestoreLimit(limitNum)
+        );
+        if (startAfterDoc) fallbackQuery = query(fallbackQuery, startAfter(startAfterDoc));
+        const fallbackSnapshot = await getDocs(fallbackQuery);
+        return { 
+            players: fallbackSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })), 
+            lastDoc: fallbackSnapshot.docs[fallbackSnapshot.docs.length - 1] 
+        };
+    }
+    return { players: [], lastDoc: null };
   }
 };
 
 export const lookupPlaystyles = async (players) => {
   try {
-      const response = await fetch(`${API_URL}/api/maintenance/lookup-playstyles`, {
+      const url = `${API_URL}/api/maintenance/lookup-playstyles`;
+      console.log('📡 Fetching playstyles from:', url);
+      const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ players })
       });
-      if (!response.ok) throw new Error('Failed to lookup playstyles');
+      if (!response.ok) {
+          console.error(`❌ HTTP Error: ${response.status} ${response.statusText}`);
+          throw new Error('Failed to lookup playstyles');
+      }
       return await response.json();
   } catch (err) {
-      console.error('Lookup error:', err);
+      console.error('❌ Network lookup error:', err);
+      // Detailed error for fetch failed
+      if (err instanceof TypeError && err.message === 'Network request failed') {
+          console.warn('💡 Device cannot reach server. Check Wi-Fi and IP address in .env');
+      }
       return [];
   }
 };

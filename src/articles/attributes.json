@@ -1,0 +1,62 @@
+[
+  {
+    "category": "ATTACKING ATTRIBUTES",
+    "intro": "These attributes are focused on the attacking part of the game. CF, RWF, and LWF will be the ones who need good stats in a few of the mentioned attributes, while in some cases, AMF, LMF, and RMF are offense-focused, so they should also reflect good stats.",
+    "items": [
+      { "name": "Offensive Awareness", "desc": "When attacking, Offensive Awareness determines how quickly the player responds to the ball. Player movement, player positioning, and his ability to make runs all depend on this player attribute." },
+      { "name": "Ball Control", "desc": "This trait indicates how well the player controls the ball in general. Trapping and feints are also affected by this attribute. The first touch of the player is replicated with this stat." },
+      { "name": "Dribbling", "desc": "The dribbling attribute defines how adept a player is at maintaining control of the ball while dribbling at a high speed. Skills that the player does is also reflected with this attribute, so with a good dribbling stat, the player’s ability to perform skill moves also increases." },
+      { "name": "Tight Possession", "desc": "Tight Possession indicates a player’s ability to complete turns while dribbling at a low speed in tight spaces. The higher the attribute is, the closer the ball will be to his feet. Helps a lot during shielding." },
+      { "name": "Low Pass", "desc": "Low Pass indicates the accuracy of a player’s ground passes and how accurate the player is when playing passes along the ground. The more the stat, the better the passing distance and accuracy of the player." },
+      { "name": "Lofted Pass", "desc": "Lofted Pass indicates the accuracy of a player’s long and powerful lofted passes. This will reflect only on the lobbed passes, and this stat will be reflected on high crosses and their accuracy." },
+      { "name": "Finishing", "desc": "The player’s ability to finish is reflected here. A higher finishing stat indicates the player will more likely hit the target and has a higher chance of scoring a goal." },
+      { "name": "Set Piece Taking", "desc": "This attribute defines a player’s average accuracy by taking a specific piece of the game, such as free kicks and penalties. It also gives the player a fair reflection of his corner-taking abilities and will vary from player to player depending on the distance to the goal." },
+      { "name": "Curl", "desc": "Curl refers to a player’s ability to curl (curve/bend) the ball while passing or shooting. The more the curl stat, the more the bend on the ball by the player with more power, accuracy, and body positioning." }
+    ]
+  },
+  {
+    "category": "DEFENDING ATTRIBUTES",
+    "intro": "These attributes are focused on the defending part of the game. CB, RB, LB, and DMF are the positions that need high stats in the mentioned attributes.",
+    "items": [
+      { "name": "Defensive Awareness", "desc": "Defensive Awareness measures how quickly a player reacts to the ball while defending. Reacting to loose balls, tracking back when caught out of position during defending, and reading the opponent player’s movements all fall under this category." },
+      { "name": "Tackling", "desc": "Tackle determines the ability to perform tackles on a player in a match. Includes both the standing and sliding tackles and also determines the ability to do shoulder barges effectively." },
+      { "name": "Aggression", "desc": "Aggression defines the aggression level of a player on pushing, pulling, and tackling. Aggressive players tend to press and tackle hard and react to tackles quickly." },
+      { "name": "Defensive Engagement", "desc": "Defensive Engagement measures a player’s ability to defend when their team does not have possession of the ball and tries to stop the opposition’s attack." }
+    ]
+  },
+  {
+    "category": "GOALKEEPING ATTRIBUTES",
+    "intro": "These attributes are focused on the keeping part of the game.",
+    "items": [
+      { "name": "GK Awareness", "desc": "This attribute determines how quickly the player can respond to the ball when playing in goal. Greater awareness makes the player move quickly on his feet and react to crosses, loose balls, etc, quickly." },
+      { "name": "GK Catching", "desc": "GK Catching defines the goalkeeper’s ability to catch the ball. A higher value means that the keeper can catch more powerful shots without fumbling the ball." },
+      { "name": "GK Parrying", "desc": "GK Parrying attribute indicates a goalkeeper’s ability to clear the ball away to safe areas. This indicates his throwing ability as well." },
+      { "name": "GK Reflexes", "desc": "GK Reflexes define a goalkeeper’s ability and speed to react for catching/saving the ball as a goalkeeper. Keepers with better reflexes can stretch the maximum to catch the balls." },
+      { "name": "GK Reach", "desc": "This attribute defines how a goalkeeper can cover the goal and the areas where he can reach and save the ball." }
+    ]
+  },
+  {
+    "category": "MIXED ATTRIBUTES",
+    "intro": "These attributes are focused on attack, defense, and keeping. Most often, the midfielders need to have consistent stats in these attributes to drop consistent performances.",
+    "items": [
+      { "name": "Speed", "desc": "Speed indicates the speed rate of a player’s sprinting (running). This includes both on and off-the-ball movements of the player." },
+      { "name": "Acceleration", "desc": "Acceleration indicates the increment of a player’s running speed on the pitch. It can be calculated as the minimum time required for the player to sprint to his maximum speed." },
+      { "name": "Kicking Power", "desc": "Kicking Power defines the strength of a player’s shots. This also has an attribute effect on passing, both low and lofted, as less kicking power might make the passes weak even at full power." },
+      { "name": "Heading", "desc": "Heading refers to a player’s accuracy when passing, heading the ball while scoring, or clearing the ball with the head. The Heading stat does not correlate with jumping, and the stat is based on a player’s still position." },
+      { "name": "Jumping", "desc": "Jumping refers to a player’s ability and quality in jumping from the surface for headers. However, this is directly related to the heading, but some players jump high but are poor at heading." },
+      { "name": "Physical Contact", "desc": "This trait indicates how well the player can hold off opponents and maintain his balance when under physical duress. This affects both attack and defense." },
+      { "name": "Balance", "desc": "Balance refers to the even distribution of forces that allows a player to run, carry, and control the ball while remaining upright and steady." },
+      { "name": "Stamina", "desc": "Stamina defines a player’s ability to sustain prolonged physical or mental effort in a match. However, the value depends on the tactics used, as aggressive pressing tactic consumes more stamina." }
+    ]
+  },
+  {
+    "category": "PLAYER PERFORMANCE ATTRIBUTES",
+    "intro": "These reflect the player’s abilities concerning feet, injuries, and form.",
+    "items": [
+      { "name": "Weak Foot Usage", "desc": "Indicates the frequency the player will use his weaker foot. Four categories in this section: Almost Never, Rarely, Occasionally, and Regularly. Regular use of his weak foot also might come in costly if his accuracy is bad." },
+      { "name": "Weak Foot Accuracy", "desc": "Indicates how accurately the player can shoot, pass, or take a touch with his weaker foot. Four categories in this section: Low, Medium, High, and Very High. Very High accuracy allows the player to shoot on target accurately." },
+      { "name": "Form", "desc": "Player condition. Also depends on the real-life form of the player. Three categories in this section: Inconsistent, Standard, and Unwavering. Unwavering is preferred as he stays in top form." },
+      { "name": "Injury Resistance", "desc": "This stat is the player’s resistance to injuries. Three categories in this section: Low, Medium, and High. High reflects that the player might get injured often." }
+    ]
+  }
+]

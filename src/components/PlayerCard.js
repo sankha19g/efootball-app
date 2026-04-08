@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, STAT_OPTIONS, getCardGradient } from '../constants';
 import { getPlayerBadge } from '../utils/imageUtils';
+import { getSecondaryPositionsFromPlayer } from '../utils/playerUtils';
 
 const { width } = Dimensions.get('window');
 
@@ -26,7 +27,7 @@ const PlayerCard = memo(({ player, players = [], isSelectionMode, isSelected, on
     highPerf = false
   } = settings;
 
-  const gradientColors = getCardGradient(player.cardType);
+  const gradientColors = useMemo(() => getCardGradient(player.cardType), [player.cardType]);
 
   const getStatValue = (slotId) => {
     if (slotId === 'totalGA') return (player.goals || 0) + (player.assists || 0);
@@ -124,6 +125,8 @@ const PlayerCard = memo(({ player, players = [], isSelectionMode, isSelected, on
               })}
             </View>
           )}
+
+
         </View>
 
         {/* Selection Overlay */}
@@ -147,10 +150,15 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 255, 170, 0.2)', // Neon glow base
   },
   cardSelected: {
     borderWidth: 2,
     borderColor: COLORS.accent,
+    shadowColor: COLORS.accent,
+    shadowOpacity: 0.8,
+    shadowRadius: 15,
   },
   card: {
     width: '100%',

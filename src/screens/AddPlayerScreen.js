@@ -22,6 +22,8 @@ import { addPlayer, uploadBase64Image } from '../services/playerService';
 
 const FORM_FIELDS = [
   { key: 'name', label: 'Player Name', placeholder: 'e.g. Lionel Messi', required: true },
+  { key: 'position', label: 'Main Position', placeholder: 'e.g. CF, SS', required: true },
+  { key: 'additionalPositions', label: 'Secondary Positions', placeholder: 'e.g. AMF, LWF' },
   { key: 'club', label: 'Club', placeholder: 'e.g. Inter Miami' },
   { key: 'nationality', label: 'Nationality', placeholder: 'e.g. Argentina' },
   { key: 'rating', label: 'Overall Rating', placeholder: '0-99', keyboardType: 'numeric' },
@@ -81,6 +83,7 @@ const AddPlayerScreen = ({ userId, initialData, onSave, onClose }) => {
       name: '', club: '', nationality: '', rating: '', cardType: 'Normal',
       position: 'CF', playstyle: 'None', matches: '0', goals: '0', assists: '0',
       image: null, leagueImage: null,
+      additionalPositions: [], additionalSkills: ['', '', '', '', ''],
     }
   );
   const [uploading, setUploading] = useState(false);
@@ -218,12 +221,7 @@ const AddPlayerScreen = ({ userId, initialData, onSave, onClose }) => {
           ))}
 
           {/* Dropdowns */}
-          <DropdownField
-            label="Position"
-            value={form.position}
-            options={POSITIONS}
-            onSelect={(val) => updateField('position', val)}
-          />
+          {/* Position was here, removed as per user request */}
 
           <DropdownField
             label="Card Type"

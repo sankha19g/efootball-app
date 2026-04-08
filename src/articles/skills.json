@@ -1,0 +1,101 @@
+[
+  {
+    "category": "ALL SHOOTING SKILLS",
+    "skills": [
+      { "name": "Long Range Curler", "desc": "Allows players to perform Controller Shots with increased accuracy and a heavy curl when far from the goal." },
+      { "name": "Chip Shot Control", "desc": "Allows players to perform accurate Chip Shots, even while moving at high speed." },
+      { "name": "Knuckle Shot", "desc": "Allows players to perform Knuckle Shots. To do so, perform a Stunning Shot with 50-60% power." },
+      { "name": "Dipping Shot", "desc": "Allows players to perform Dipping Shots (65-95% power Stunning Shot)." },
+      { "name": "Rising Shot", "desc": "Allows players to perform Rising Shots (65-95% power Stunning Shot)." },
+      { "name": "Long Range Shooting", "desc": "Boosts the accuracy of shots performed when outside of the box." },
+      { "name": "Acrobatic Finishing", "desc": "Allows players to finish by performing acrobatic volleys/shots." },
+      { "name": "One-time Shot", "desc": "Improves a player’s ability to perform one-time shots." },
+      { "name": "Penalty Specialist", "desc": "Improves the accuracy of penalty kicks." }
+    ]
+  },
+  {
+    "category": "ALL PASSING SKILLS",
+    "skills": [
+      { "name": "Heel Trick", "desc": "Allows players to perform heel passes." },
+      { "name": "One Touch Pass", "desc": "Improves the power and precision of one-time passes." },
+      { "name": "Through Passing", "desc": "Allows players to perform more precise through passes. Also boosts the success rate of those featuring tricky trajectories." },
+      { "name": "Weighted Pass", "desc": "Allows players to perform lofted and fly-through passes with heavy backspins." },
+      { "name": "Pinpoint Crossing", "desc": "Allows players to perform sharper/more accurate crosses." },
+      { "name": "Outside Curler", "desc": "Players with the skill can perform precise outside spinning shots and passes, no matter the range." },
+      { "name": "Rabona", "desc": "Allows players to perform rabona passes/shots." },
+      { "name": "No Look Pass", "desc": "Allows players to perform no-look passes." },
+      { "name": "Low Lofted Pass", "desc": "Allows players to perform low-trajectory lofted passes, no matter the distance." }
+    ]
+  },
+  {
+    "category": "ALL DRIBBLING SKILLS",
+    "skills": [
+      { "name": "Scissors Feint", "desc": "Increases the speed of Scissor Feints." },
+      { "name": "Double Touch", "desc": "Increases the speed of Double Touches." },
+      { "name": "Flip Flap", "desc": "Allows players to perform the Flip Flap (aka the Elastico)." },
+      { "name": "Merseille Turn", "desc": "Increases the speed of Merseille Turns." },
+      { "name": "Sombrero", "desc": "Allows players to perform both Flick and Sombrero Turns when tapping the ball. Increases the accuracy of flicks." },
+      { "name": "Chop Turn", "desc": "Allows players to perform faster Chop Turn dribbles." },
+      { "name": "Cut Behind & Turn", "desc": "Allows players to perform a Cut Behind with a special tapping motion." },
+      { "name": "Inside Bounce", "desc": "Allows players to perform Inside Bounces." },
+      { "name": "Sole Control", "desc": "Players with the skill can perform faster and more precise feints/turns." }
+    ]
+  },
+  {
+    "category": "ALL DEFENDING SKILLS",
+    "skills": [
+      { "name": "Weighted Pass", "desc": "Allows players to perform lofted and fly-through passes with heavy backspins." },
+      { "name": "Man Marking", "desc": "Makes players harder to get rid of when man marking, while also improving their reaction speed." },
+      { "name": "Track Back", "desc": "Improves a player’s ability to apply aggressive pressure." },
+      { "name": "Interception", "desc": "Boosts your player’s ability to react and intercept passes." },
+      { "name": "Blocker", "desc": "Limits the number of rebounds and boosts a player’s ability to react to/block passes." },
+      { "name": "Aerial Superiority", "desc": "Boosts a player’s ability to win aerial duels." },
+      { "name": "Sliding Tackle", "desc": "Boosts the speed and accuracy of sliding tackles. Your player will also win the ball more often." },
+      { "name": "Acrobatic Clearance", "desc": "Allows players to clear the ball with their feet, even when out of balance or in the air." }
+    ]
+  },
+  {
+    "category": "ALL OTHER SKILLS",
+    "skills": [
+      { "name": "Heading", "desc": "Improves the accuracy of headers. Players with the skill also perform downward headers more often." },
+      { "name": "Long Throws", "desc": "Allows players to perform longer throws." },
+      { "name": "Gamesmanship", "desc": "Allows players to win fouls more easily when in possession." },
+      { "name": "Aerial Superiority", "desc": "Boosts a player’s ability to win aerial duels." },
+      { "name": "Captaincy", "desc": "Allows your player to reduce the whole team’s fatigue." },
+      { "name": "Super-Sub", "desc": "Boosts a player’s overall ability after being subbed in on the second half." },
+      { "name": "Fighting Spirit", "desc": "Players with the skill will lose less kicking/heading accuracy while under pressure. Also reduces fatigue effects." }
+    ]
+  },
+  {
+    "category": "ALL GK EXCLUSIVE SKILLS",
+    "skills": [
+      { "name": "GK High Punt", "desc": "Allows players to perform more accurate high-trajectory punt kicks." },
+      { "name": "GK Low Punt", "desc": "Allows players to perform more accurate low-trajectory punt kicks." },
+      { "name": "GK Long Throws", "desc": "Improves the distance of throws." },
+      { "name": "GK Penalty Saver", "desc": "Boosts goalkeeping reactions against penalty kicks." }
+    ]
+  },
+  {
+    "category": "ALL SPECIAL PLAYER SKILLS",
+    "skills": [
+      { "name": "Aerial Fort", "desc": "Further boosts your aerial prowess." },
+      { "name": "Acceleration Burst", "desc": "Allows players to get a higher acceleration boost off the dribble." },
+      { "name": "Attack Trigger (NEW)", "desc": "Allows players to increase the Attacking Awareness of all teammates when with the ball." },
+      { "name": "Blitz Curler", "desc": "Adds more accuracy and an ever-sharper curve to Controlled Shots (50%+ power)." },
+      { "name": "Bullet Header", "desc": "Boosts the accuracy and power of headers." },
+      { "name": "Edged Crossing", "desc": "Boosts the accuracy of crosses." },
+      { "name": "Fortress", "desc": "Increases a player’s defensive and physical performance if leading at the start of the second half." },
+      { "name": "Game-Changing Pass", "desc": "Boosts the accuracy of passes if losing at halftime." },
+      { "name": "GK Directing Defense", "desc": "Increases the defensive abilities of your defenders." },
+      { "name": "GK Spirit Roar", "desc": "Boosts the physicality of your defenders." },
+      { "name": "Long Reach Tackle", "desc": "Massively improves a player’s range and success rate when performing standing tackles." },
+      { "name": "Low Screamer", "desc": "Allows players to perform powerful low screamers. To do so, perform a Stunning Shot with under 50% power." },
+      { "name": "Magnetic Feet", "desc": "Increases your player’s ability to keep control of the ball while heavily marked." },
+      { "name": "Momentum Dribbling", "desc": "Allows players to keep tight control of the ball when dribbling, which translates into faster ball speed and quicker transitions between moves." },
+      { "name": "Phenomenal Finishing", "desc": "Massively boosts a player’s ability to finish with all shot types." },
+      { "name": "Phenomenal Pass", "desc": "Boosts the accuracy/speed of all passes." },
+      { "name": "Willpower", "desc": "Continuously boosts a player’s shooting ability the more shots they take." },
+      { "name": "Visionary Pass", "desc": "Allows players to temporarily boost the first-time ball control and one-touch shots/passes of receivers following a pass." }
+    ]
+  }
+]
