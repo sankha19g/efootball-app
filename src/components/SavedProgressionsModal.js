@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, POSITIONS, ALL_SKILLS } from '../constants';
+import ProgressionIcon from './ProgressionIcon';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -118,8 +119,8 @@ const SavedProgressionsModal = ({ visible, player, onClose, onUpdatePlayer, init
     const StatIncremental = ({ stat }) => (
         <View style={styles.statRow}>
             <View style={styles.statInfo}>
-                <Text style={styles.statIcon}>{stat.icon}</Text>
-                <Text style={styles.statLabel}>{stat.label}</Text>
+                <ProgressionIcon statKey={stat.key} size={32} color={COLORS.accent} showBackground={true} />
+                <Text style={[styles.statLabel, { marginLeft: 8 }]}>{stat.label}</Text>
                 <Text style={styles.statVal}>{newBuild[stat.key] || 0}</Text>
             </View>
             <View style={styles.statControls}>
@@ -225,7 +226,8 @@ const SavedProgressionsModal = ({ visible, player, onClose, onUpdatePlayer, init
                                             <View style={styles.statCloud}>
                                                 {statFields.map(s => build[s.key] > 0 && (
                                                     <View key={s.key} style={styles.statPill}>
-                                                        <Text style={styles.pillText}>{s.icon} {build[s.key]}</Text>
+                                                        <ProgressionIcon statKey={s.key} size={16} color="rgba(255,255,255,0.8)" showBackground={true} />
+                                                        <Text style={[styles.pillText, { marginLeft: 4 }]}>{build[s.key]}</Text>
                                                     </View>
                                                 ))}
                                             </View>
@@ -268,7 +270,7 @@ const styles = StyleSheet.create({
     cardName: { color: '#fff', fontSize: 13, fontWeight: '900' },
     cardRating: { color: COLORS.accent, fontSize: 11, fontWeight: '900', backgroundColor: 'rgba(0,255,136,0.1)', paddingHorizontal: 6, borderRadius: 4 },
     statCloud: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
-    statPill: { backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+    statPill: { backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, flexDirection: 'row', alignItems: 'center' },
     pillText: { color: 'rgba(255,255,255,0.5)', fontSize: 9, fontWeight: '800' },
     cardActions: { flexDirection: 'row', gap: 5 },
     actionBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.05)', justifyContent: 'center', alignItems: 'center' },

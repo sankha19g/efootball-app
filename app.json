@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "Efootball Tracker",
+    "name": "eFootball Pro Tracker",
     "slug": "efootball-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -19,13 +19,15 @@
       }
     },
     "android": {
+      "package": "com.sankha.efootballpro",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#080809"
       },
       "permissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
       ],
       "statusBar": {
         "hidden": true
@@ -42,6 +44,11 @@
           "cameraPermission": "Allow Efootball Tracker to access your camera."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "dccd9b7a-0791-441c-a5b1-e31ce330e6b5"
+      }
+    }
   }
 }

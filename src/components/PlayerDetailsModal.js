@@ -13,7 +13,9 @@ import {
   StatusBar,
   TextInput,
   Alert,
+  Linking,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 
 import * as ImagePicker from 'expo-image-picker';
@@ -26,6 +28,7 @@ import SavedProgressionsModal from './SavedProgressionsModal';
 import { COLORS, getCardGradient, ALL_SKILLS, SPECIAL_SKILLS, PLAYER_SKILLS, POSITIONS } from '../constants';
 import PlayerCard from '../components/PlayerCard';
 import { getSecondaryPositionsFromPlayer } from '../utils/playerUtils';
+import ProgressionIcon from './ProgressionIcon';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -201,6 +204,53 @@ const CompactInfo = ({ icon, text, image, isFlag = false }) => (
     <Text style={styles.compactInfoText} numberOfLines={1}>{text || '--'}</Text>
   </View>
 );
+
+const EfficiencyItem = ({ icon, label, value, color }) => (
+  <View style={styles.effItem}>
+    <View style={[styles.effIconContainer, { backgroundColor: `${color}15` }]}>
+      <MaterialCommunityIcons name={icon} size={16} color={color} />
+    </View>
+    <View style={styles.effInfo}>
+      <Text style={[styles.effValue, { color }]}>{value}</Text>
+      <Text style={styles.effLabel}>{label}</Text>
+    </View>
+  </View>
+);
+
+const PerformanceItem = ({ icon, label, value, color = '#fff', isFull = false, badge }) => (
+  <View style={[styles.perfItem, isFull && styles.perfItemFull]}>
+    <View style={styles.perfHeader}>
+      <MaterialCommunityIcons name={icon} size={11} color={color} style={{ opacity: 0.4 }} />
+      <Text style={styles.perfLabel}>{label}</Text>
+    </View>
+    <View style={styles.perfValueContainer}>
+      <Text style={[styles.perfValue, { color }]} numberOfLines={1}>{value || '--'}</Text>
+      {badge && (
+        <View style={[styles.perfBadge, { backgroundColor: badge.color }]}>
+          <Text style={styles.perfBadgeText}>{badge.text}</Text>
+        </View>
+      )}
+    </View>
+  </View>
+);
+
+const getWFBadge = (val, type) => {
+  if (!val) return null;
+  const v = String(val).toLowerCase();
+  
+  if (type === 'usage') {
+    if (v.includes('almost never') || v === '1') return { text: '1', color: '#FF4444' };
+    if (v.includes('rarely') || v === '2') return { text: '2', color: '#FFD700' };
+    if (v.includes('occasionally') || v === '3') return { text: '3', color: '#00E676' };
+    if (v.includes('regularly') || v === '4') return { text: '4', color: '#2979FF' };
+  } else if (type === 'accuracy') {
+    if (v.includes('low') || v === '1') return { text: '1', color: '#FF4444' };
+    if (v.includes('medium') || v === '2') return { text: '2', color: '#FFD700' };
+    if (v.includes('very high') || v === '4') return { text: '4', color: '#2979FF' };
+    if (v.includes('high') || v === '3') return { text: '3', color: '#00E676' };
+  }
+  return null;
+};
 
 const StylishAlert = ({ visible, title, message, onConfirm, onCancel }) => (
   <Modal visible={visible} transparent={true} animationType="fade">
@@ -455,7 +505,8 @@ const ProgressionView = ({ player, onShowSaved, onEditBuild, onDeleteBuild }) =>
                   {['shooting', 'passing', 'dribbling', 'dexterity', 'lowerBody', 'aerial', 'defending'].map(stat => (
                     build[stat] > 0 && (
                       <View key={stat} style={styles.miniStatPill}>
-                        <Text style={styles.miniStatText}>{stat.substring(0, 2).toUpperCase()} {build[stat]}</Text>
+                        <ProgressionIcon statKey={stat} size={16} color="rgba(255,255,255,0.8)" showBackground={true} />
+                        <Text style={[styles.miniStatText, { marginLeft: 4 }]}>{build[stat]}</Text>
                       </View>
                     )
                   ))}
@@ -539,30 +590,30 @@ const MediaView = ({ media, onAddMedia, onDeleteMedia, onToggleAspect }) => {
             const videoId = item.type === 'video' ? getYouTubeVideoId(item.url) : null;
             const isShorts = /shorts/i.test(item.url);
             const isPinterest = /pinterest\.com|pin\.it/i.test(item.url);
-            
+
             const isPortrait = item.aspect === 'portrait' || (item.aspect !== 'landscape' && (isShorts || isPinterest));
-            
+
             const containerWidth = SCREEN_WIDTH - 40;
             // Precise percent-based layout for ultimate stability
             const visualWidth = isPortrait ? '48%' : '98%';
             const visualMargin = '1%';
-            
-            const calcWidth = isPortrait 
-              ? (containerWidth - 30) / 2 
+
+            const calcWidth = isPortrait
+              ? (containerWidth - 30) / 2
               : containerWidth - 10;
 
             const contentHeight = isPortrait ? calcWidth * 1.778 : calcWidth * 0.5625;
 
             return (
               <View key={idx} style={[
-                styles.mediaMasonryItem, 
+                styles.mediaMasonryItem,
                 { width: visualWidth, margin: visualMargin, height: contentHeight }
               ]}>
                 <View style={[
-                  styles.mediaContentFull, 
-                  { 
+                  styles.mediaContentFull,
+                  {
                     height: contentHeight,
-                    borderRadius: 20, 
+                    borderRadius: 20,
                     overflow: 'hidden',
                     justifyContent: 'center',
                     backgroundColor: '#000'
@@ -571,14 +622,14 @@ const MediaView = ({ media, onAddMedia, onDeleteMedia, onToggleAspect }) => {
                   {videoId ? (
                     <View style={isPortrait ? styles.shortsPlayerContainer : styles.youtubeWrapper}>
                       {isPortrait ? (
-                          <View style={[styles.shortsPlayerIframeWrapper, { 
-                            width: calcWidth * 3.16, 
-                            height: calcWidth * 1.778 + 2, // Slight overfill to prevent lines
-                            marginLeft: -(calcWidth * 3.16) / 2 
-                          }]}>
-                            <YoutubePlayer
-                              width={calcWidth * 3.16}
-                              height={calcWidth * 1.778 + 2}
+                        <View style={[styles.shortsPlayerIframeWrapper, {
+                          width: calcWidth * 3.16,
+                          height: calcWidth * 1.778 + 2, // Slight overfill to prevent lines
+                          marginLeft: -(calcWidth * 3.16) / 2
+                        }]}>
+                          <YoutubePlayer
+                            width={calcWidth * 3.16}
+                            height={calcWidth * 1.778 + 2}
                             play={false}
                             videoId={videoId}
                             webViewProps={{
@@ -627,14 +678,14 @@ const MediaView = ({ media, onAddMedia, onDeleteMedia, onToggleAspect }) => {
                   ) : item.type === 'image' ? (
                     <Image
                       key={item.url}
-                      source={{ 
+                      source={{
                         uri: item.url,
-                        headers: item.url.includes('wikimedia.org') ? { 
-                          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' 
+                        headers: item.url.includes('wikimedia.org') ? {
+                          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
                         } : {}
                       }}
-                      style={{ 
-                        width: isPortrait ? calcWidth : containerWidth - 10, 
+                      style={{
+                        width: isPortrait ? calcWidth : containerWidth - 10,
                         height: isPortrait ? calcWidth * 1.778 : (containerWidth - 10) * 0.5625,
                         backgroundColor: '#111'
                       }}
@@ -652,8 +703,8 @@ const MediaView = ({ media, onAddMedia, onDeleteMedia, onToggleAspect }) => {
                 </View>
                 {isDeleteMode && (
                   <View style={styles.mediaItemActions}>
-                    <TouchableOpacity 
-                      style={[styles.mediaActionBtn, styles.mediaDeleteBtnActive]} 
+                    <TouchableOpacity
+                      style={[styles.mediaActionBtn, styles.mediaDeleteBtnActive]}
                       onPress={() => onDeleteMedia(idx)}
                     >
                       <Text style={styles.mediaActionBtnText}>✕</Text>
@@ -781,14 +832,14 @@ const MediaAddModal = ({ visible, onClose, onAdd, userId }) => {
                 if (url.trim()) {
                   let finalType = mediaType;
                   const trimmedUrl = url.trim().toLowerCase();
-                  
+
                   // Enhanced auto-detection for images
                   const commonImgExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
-                  const isImgLink = commonImgExts.some(ext => trimmedUrl.includes(ext)) || 
-                                   trimmedUrl.includes('wikimedia.org') || 
-                                   trimmedUrl.includes('imgbb.com') ||
-                                   trimmedUrl.includes('images.app.goo.gl');
-                  
+                  const isImgLink = commonImgExts.some(ext => trimmedUrl.includes(ext)) ||
+                    trimmedUrl.includes('wikimedia.org') ||
+                    trimmedUrl.includes('imgbb.com') ||
+                    trimmedUrl.includes('images.app.goo.gl');
+
                   if (isImgLink) {
                     finalType = 'image';
                   } else if (trimmedUrl.includes('youtube.com') || trimmedUrl.includes('youtu.be') || trimmedUrl.includes('vimeo.com')) {
@@ -1142,12 +1193,35 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
                   <Text style={styles.separator}>|</Text>
                   <Text style={[styles.playstyleText, { color: COLORS.accent }]}>{player.playstyle || 'None'}</Text>
                 </View>
-                <View style={styles.idList}>
-                  <CompactInfo icon="🛡️" text={player.club} image={player.logos?.club || player.club_badge_url} />
-                  <CompactInfo icon="🏳️" text={player.nationality} image={player.logos?.country || player.nationality_flag_url} isFlag={true} />
-                  <CompactInfo icon="🏆" text={player.league} image={player.logos?.league || player.league_badge_url} />
-                  <CompactInfo icon="🆔" text={player.pesdb_id || player.playerId} />
-                  <CompactInfo icon="👤" text={`${player.age || '--'} • ${player.strongFoot || '--'}`} />
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                  <View style={styles.idList}>
+                    <CompactInfo icon="🛡️" text={player.club} image={player.logos?.club || player.club_badge_url} />
+                    <CompactInfo icon="🏳️" text={player.nationality} image={player.logos?.country || player.nationality_flag_url} isFlag={true} />
+                    <CompactInfo icon="🏆" text={player.league} image={player.logos?.league || player.league_badge_url} />
+                    <CompactInfo icon="🆔" text={player.pesdb_id || player.playerId} />
+                    <CompactInfo icon="👤" text={`${player.age || '--'} • ${player.strongFoot || player.foot || player.strong_foot || player.strongfoot || '--'} • ${player.height || '--'}CM`} />
+                  </View>
+
+                    <TouchableOpacity 
+                      style={styles.efhubBtn}
+                      onPress={() => {
+                        const id = player.playerId || player.pesdb_id;
+                        if (id) {
+                          Linking.openURL(`https://efhub.com/players/${id}`);
+                        } else {
+                          Alert.alert('No ID', 'This player does not have a valid ID for EFHub.');
+                        }
+                      }}
+                    >
+                      <View style={styles.efhubSquare}>
+                        <Image 
+                          source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-u_c9SzJg_Kfn9aRGf2y5-0drkCDmurWmQQ&s' }} 
+                          style={{ width: 28, height: 28, borderRadius: 8 }}
+                          resizeMode="contain"
+                        />
+                      </View>
+                      <Text style={styles.efhubText}>EFHUB</Text>
+                    </TouchableOpacity>
                 </View>
                 {player.cardType && <Text style={styles.cardTypeText}>{player.cardType.toUpperCase()}</Text>}
               </View>
@@ -1168,9 +1242,24 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
                 <View style={styles.twinColumnLeft}>
                   <Text style={styles.sectionTitle}>EFFICIENCY</Text>
                   <View style={styles.efficiencyCard}>
-                    <InfoRow label="GOALS / GM" value={player.matches > 0 ? (player.goals / player.matches).toFixed(2) : '0.00'} color={COLORS.accent} />
-                    <InfoRow label="ASSISTS / GM" value={player.matches > 0 ? (player.assists / player.matches).toFixed(2) : '0.00'} color={COLORS.blue} />
-                    <InfoRow label="G+A / GM" value={player.matches > 0 ? ((player.goals + player.assists) / player.matches).toFixed(2) : '0.00'} color="#fff" />
+                    <EfficiencyItem
+                      icon="soccer"
+                      label="GOALS / GM"
+                      value={player.matches > 0 ? (player.goals / player.matches).toFixed(2) : '0.00'}
+                      color={COLORS.accent}
+                    />
+                    <EfficiencyItem
+                      icon="target"
+                      label="ASSISTS / GM"
+                      value={player.matches > 0 ? (player.assists / player.matches).toFixed(2) : '0.00'}
+                      color={COLORS.blue}
+                    />
+                    <EfficiencyItem
+                      icon="flash"
+                      label="G+A / GM"
+                      value={player.matches > 0 ? ((player.goals + player.assists) / player.matches).toFixed(2) : '0.00'}
+                      color="#fff"
+                    />
                   </View>
                 </View>
                 <View style={styles.twinColumnRight}>
@@ -1297,6 +1386,54 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
                     ) : (
                       <Text style={styles.noTagsText}>NO TAGS ADDED</Text>
                     )}
+                  </View>
+                </View>
+
+                <View style={[styles.additionalSkillsContainer, { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.03)', marginTop: 20, paddingTop: 20 }]}>
+                  <View style={styles.additionalHeader}>
+                    <Text style={[styles.additionalTitle, { color: COLORS.accent }]}>PERFORMANCE & ORIGIN</Text>
+                  </View>
+                  <View style={styles.performanceGrid}>
+                    <View style={styles.perfRow}>
+                      <PerformanceItem 
+                        icon="shoe-print" 
+                        label="WF USAGE" 
+                        value={player['Weak Foot Usage'] || player.weakFootUsage || player.weak_foot_usage} 
+                        badge={getWFBadge(player['Weak Foot Usage'] || player.weakFootUsage || player.weak_foot_usage, 'usage')}
+                      />
+                      <PerformanceItem 
+                        icon="bullseye-arrow" 
+                        label="WF ACCURACY" 
+                        value={player['Weak Foot Accuracy'] || player.weakFootAccuracy || player.weak_foot_accuracy} 
+                        badge={getWFBadge(player['Weak Foot Accuracy'] || player.weakFootAccuracy || player.weak_foot_accuracy, 'accuracy')}
+                      />
+                    </View>
+                    <View style={styles.perfRow}>
+                      <PerformanceItem icon="medical-bag" label="INJURY RES" value={player['Injury Resistance'] || player.injuryResistance || player.injury_resistance} />
+                      <PerformanceItem icon="heart-pulse" label="FORM" value={player.form || player.Form} />
+                    </View>
+                    <View style={styles.perfDivider} />
+                    <PerformanceItem
+                      icon="package-variant-closed"
+                      label="FEATURED PACK"
+                      value={(player['Featured Players'] || player.featuredPack || player.featured_pack || player.pack || '--').toUpperCase()}
+                      color={COLORS.accent}
+                      isFull
+                    />
+                    <View style={styles.perfRow}>
+                      <PerformanceItem
+                        icon="calendar-plus"
+                        label="ADDED"
+                        value={(player['Date Added'] && player['Date Added'] !== '') ? player['Date Added'].toUpperCase() : (player.createdAt || player.dateAdded) ? new Date(player.createdAt || player.dateAdded).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : '--'}
+                        color="rgba(255,255,255,0.5)"
+                      />
+                      <PerformanceItem
+                        icon="cloud-upload"
+                        label="UPDATED"
+                        value={player.lastUpdated ? new Date(player.lastUpdated).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : (player.updatedAt ? new Date(player.updatedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : '--')}
+                        color="rgba(255,255,255,0.5)"
+                      />
+                    </View>
                   </View>
                 </View>
               </View>
@@ -1455,13 +1592,30 @@ const styles = StyleSheet.create({
   tagContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
   tag: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   tagText: { fontSize: 9, fontWeight: '900', letterSpacing: 1 },
-  idList: { marginTop: 4, marginBottom: 12, gap: 4 },
-  compactInfoChip: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  idList: { marginTop: 4, marginBottom: 8, gap: 2 },
+  compactInfoChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 1 },
   compactInfoIcon: { fontSize: 10, opacity: 0.6 },
   compactInfoText: { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '700' },
   badgeImage: { width: 14, height: 14, opacity: 0.8 },
   flagImage: { width: 16, height: 12, borderRadius: 2 },
   cardTypeText: { color: 'rgba(255,255,255,0.25)', fontSize: 9, fontWeight: '800', letterSpacing: 2 },
+  efhubBtn: { alignItems: 'center', gap: 6, marginRight: 5, marginTop: 10 },
+  efhubSquare: { 
+    width: 48, 
+    height: 48, 
+    borderRadius: 14, 
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    justifyContent: 'center', 
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: COLORS.accent,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5
+  },
+  efhubText: { color: 'rgba(255,255,255,0.4)', fontSize: 8, fontWeight: '900', letterSpacing: 1.2 },
   scrollContent: { flex: 1 },
   scrollInner: { paddingHorizontal: 20, paddingTop: 15, paddingBottom: 120 },
   statsGrid: { flexDirection: 'row', gap: 10, marginBottom: 20 },
@@ -1472,7 +1626,50 @@ const styles = StyleSheet.create({
   twinColumnLeft: { flex: 1 },
   twinColumnRight: { flex: 1.35 },
   sectionTitle: { color: 'rgba(255,255,255,0.2)', fontSize: 8, fontWeight: '900', letterSpacing: 1.2, marginBottom: 10, marginLeft: 2, textTransform: 'uppercase' },
-  efficiencyCard: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 18, padding: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', height: 210, justifyContent: 'center' },
+  efficiencyCard: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 22,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    height: 210,
+    justifyContent: 'space-between',
+  },
+  effItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    marginVertical: 4,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.03)',
+  },
+  effIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  effInfo: {
+    flex: 1,
+  },
+  effValue: {
+    fontSize: 15,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+  },
+  effLabel: {
+    color: 'rgba(255,255,255,0.25)',
+    fontSize: 7.5,
+    fontWeight: '800',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginTop: -2,
+  },
   rankingGrid8: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 18, padding: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', height: 210 },
   rankItemCell: { width: '48%', backgroundColor: 'rgba(0,0,0,0.15)', borderRadius: 10, padding: 4, justifyContent: 'center', height: 46 },
   rankItemFirst: { width: '48%', backgroundColor: 'rgba(0,204,255,0.05)', borderRadius: 10, padding: 4, justifyContent: 'center', alignItems: 'center', height: 46, borderWidth: 1, borderColor: 'rgba(0,204,255,0.1)' },
@@ -1490,7 +1687,7 @@ const styles = StyleSheet.create({
   dropdownIcon: { fontSize: 13 },
   dropdownText: { color: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
   dropdownTextActive: { color: COLORS.accent },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 15 },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 15 },
   infoLabelContainer: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   infoIcon: { fontSize: 14, opacity: 0.6 },
   infoLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
@@ -1517,6 +1714,72 @@ const styles = StyleSheet.create({
   slotDotActive: { backgroundColor: COLORS.blue },
   additionalPillText: { color: '#fff', fontSize: 9, fontWeight: '800' },
   additionalPillTextEmpty: { color: 'rgba(255,255,255,0.1)', fontSize: 8, fontStyle: 'italic' },
+  performanceGrid: {
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderRadius: 22,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    marginTop: 5,
+  },
+  perfRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  perfItem: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 14,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.02)',
+  },
+  perfItemFull: {
+    width: '100%',
+    marginBottom: 12,
+  },
+  perfHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  perfLabel: {
+    color: 'rgba(255,255,255,0.25)',
+    fontSize: 7.5,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  perfValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginLeft: 17,
+  },
+  perfValue: {
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  perfBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    minWidth: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  perfBadgeText: {
+    color: '#000',
+    fontSize: 9,
+    fontWeight: '900',
+  },
+  perfDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    marginVertical: 4,
+    marginBottom: 16,
+  },
 
   // Position Training Grid Styles
   trainingGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
@@ -1651,7 +1914,7 @@ const styles = StyleSheet.create({
   buildCardName: { color: '#fff', fontSize: 13, fontWeight: '900' },
   buildCardRating: { color: COLORS.accent, fontSize: 10, fontWeight: '900', backgroundColor: 'rgba(0,255,136,0.1)', paddingHorizontal: 6, borderRadius: 4 },
   buildCardStats: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
-  miniStatPill: { backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  miniStatPill: { backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, flexDirection: 'row', alignItems: 'center' },
   miniStatText: { color: 'rgba(255,255,255,0.5)', fontSize: 8, fontWeight: '800' },
   buildActions: { flexDirection: 'row', gap: 6 },
   buildActionBtn: { width: 34, height: 34, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.05)', justifyContent: 'center', alignItems: 'center' },
@@ -1876,7 +2139,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#000',
     borderWidth: 2,
-    borderColor: 'rgba(0, 255, 136, 0.5)', 
+    borderColor: 'rgba(0, 255, 136, 0.5)',
     marginBottom: 15,
     shadowColor: 'rgba(0, 255, 136, 0.5)',
     shadowOffset: { width: 0, height: 0 },

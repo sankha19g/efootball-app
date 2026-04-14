@@ -203,7 +203,7 @@ const FormationsScreen = () => {
 
     const handleSelectFormation = (f) => {
         const isCustom = f === 'CUSTOM';
-        const newPositions = isCustom && currentSquad.customPositions
+        const newPositions = isCustom && currentSquad?.customPositions
             ? currentSquad.customPositions
             : SQUAD_FORMATIONS[f];
 
@@ -229,16 +229,18 @@ const FormationsScreen = () => {
             'GK': ['GK']
         };
 
-        const currentSlot = currentSquad.startingXI[index];
-        const initialPos = SQUAD_FORMATIONS[currentSquad.formation][index];
-        const currentLabel = currentSlot.positionLabel || initialPos.role;
+        const startingXI = currentSquad?.startingXI || [];
+        const currentSlot = startingXI[index];
+        const formation = currentSquad?.formation || '4-3-3';
+        const initialPos = SQUAD_FORMATIONS[formation][index];
+        const currentLabel = currentSlot?.positionLabel || initialPos?.role;
 
-        const possibleRoles = roleMap[initialPos.role] || [initialPos.role];
+        const possibleRoles = roleMap[initialPos?.role] || [initialPos?.role];
         const currentIndex = possibleRoles.indexOf(currentLabel);
         const nextIndex = (currentIndex + 1) % possibleRoles.length;
         const nextRole = possibleRoles[nextIndex];
 
-        const newXI = [...currentSquad.startingXI];
+        const newXI = [...startingXI];
         newXI[activeRoleSlot] = { ...newXI[activeRoleSlot], positionLabel: nextRole };
         setCurrentSquad({ ...currentSquad, startingXI: newXI });
         setShowRoleSelector(false);
@@ -353,7 +355,7 @@ const FormationsScreen = () => {
         // Pitch is at typical top-middle position
         // We can iterate through slot positions and check distance
         const PITCH_TOP = 200; // Estimated from layout
-        const pitchSlots = currentSquad.positions;
+        const pitchSlots = currentSquad?.positions || [];
         let closestIndex = -1;
         let minDistance = 50; // Threshold pixels
 
@@ -402,9 +404,10 @@ const FormationsScreen = () => {
     };
 
     const renderPlayer = (index, pos) => {
-        const slot = currentSquad.startingXI[index];
-        const player = players.find(p => p._id === slot?.playerId);
-        const isCustom = currentSquad.formation === 'CUSTOM';
+        const startingXI = currentSquad?.startingXI || [];
+        const slot = startingXI[index];
+        const player = Array.isArray(players) ? players.find(p => p._id === slot?.playerId) : null;
+        const isCustom = currentSquad?.formation === 'CUSTOM';
         const canDrag = isCustom && isDragMode;
         const isSelectedForDraft = activeDraftSelection?.player?._id === player?._id && activeDraftSelection?.index === index && activeDraftSelection?.type === 'XI';
 
@@ -464,11 +467,14 @@ const FormationsScreen = () => {
     };
 
     const renderMiniPitch = (squad) => {
+        const positions = squad?.positions || [];
+        const startingXI = squad?.startingXI || [];
+
         return (
             <LinearGradient colors={['#1a3a11', '#0a1a05']} style={styles.miniPitchOverlay}>
-                {squad.positions.map((pos, idx) => {
-                    const slot = squad.startingXI[idx];
-                    const player = players.find(p => p._id === slot?.playerId);
+                {positions.map((pos, idx) => {
+                    const slot = startingXI[idx];
+                    const player = Array.isArray(players) ? players.find(p => p._id === slot?.playerId) : null;
                     return (
                         <View
                             key={idx}
@@ -524,11 +530,11 @@ const FormationsScreen = () => {
                                             {renderMiniPitch(s)}
                                         </View>
                                         <View style={styles.squadInfoGrid}>
-                                            <Text style={styles.squadNameSmall} numberOfLines={1}>{s.name.toUpperCase()}</Text>
+                                            <Text style={styles.squadNameSmall} numberOfLines={1}>{(s.name || 'UNNAMED SQUAD').toUpperCase()}</Text>
                                             <View style={styles.squadBadgeRowSmall}>
-                                                <Text style={styles.squadFormationSmall}>{s.formation}</Text>
+                                                <Text style={styles.squadFormationSmall}>{s.formation || 'N/A'}</Text>
                                                 <View style={styles.countBadgeSmall}>
-                                                    <Text style={styles.countTextSmall}>{s.startingXI.filter(x => x.playerId).length}/11</Text>
+                                                    <Text style={styles.countTextSmall}>{(s.startingXI || []).filter(x => x?.playerId).length}/11</Text>
                                                 </View>
                                             </View>
                                         </View>
@@ -1036,9 +1042,9 @@ const FormationsScreen = () => {
                         style={styles.statsList}
                         showsVerticalScrollIndicator={false}
                     >
-                        {[...currentSquad.startingXI, ...currentSquad.subBench].map((slot, idx) => {
+                        {[...(currentSquad?.startingXI || []), ...(currentSquad?.subBench || [])].map((slot, idx) => {
                             if (!slot?.playerId) return null;
-                            const player = players.find(p => p._id === slot.playerId);
+                            const player = Array.isArray(players) ? players.find(p => p._id === slot.playerId) : null;
                             if (!player) return null;
 
                             const isXI = idx < 11;

@@ -25,7 +25,7 @@ const ProfileStatsScreen = ({ players = [], onClose }) => {
     const playstyles = {};
 
     players.forEach(p => {
-      const type = p.cardType || 'Normal';
+      const type = p.cardType || 'Standard';
       cardTypes[type] = (cardTypes[type] || 0) + 1;
 
       const pos = p.position || 'Unknown';

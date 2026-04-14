@@ -80,7 +80,7 @@ const DropdownField = ({ label, value, options, onSelect }) => {
 const AddPlayerScreen = ({ userId, initialData, onSave, onClose }) => {
   const [form, setForm] = useState(
     initialData || {
-      name: '', club: '', nationality: '', rating: '', cardType: 'Normal',
+      name: '', club: '', nationality: '', rating: '', cardType: 'Standard',
       position: 'CF', playstyle: 'None', matches: '0', goals: '0', assists: '0',
       image: null, leagueImage: null,
       additionalPositions: [], additionalSkills: ['', '', '', '', ''],

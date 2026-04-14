@@ -50,7 +50,9 @@ const RankCard = ({ title, players, valueKey, color, suffix = '', isRatio = fals
               <Text style={styles.rankNum}>#{idx + 1}</Text>
               <View style={styles.playerInfo}>
                 <Text style={styles.playerName} numberOfLines={1}>{player.name}</Text>
-                <Text style={styles.playerSub}>{player.position} • {player.club}</Text>
+                <Text style={styles.playerSub}>
+                  {player.position} {player.isSecondaryInRanking && <Text style={{ color: COLORS.accent, fontWeight: '900' }}>(SEC)</Text>} • {player.club}
+                </Text>
               </View>
               <View style={styles.valueBox}>
                 <Text style={[styles.valueText, { color }]}>{displayValue}</Text>
@@ -111,23 +113,53 @@ const RanksScreen = ({ navigation, onClose }) => {
   }, [previewPlayer]);
 
   // Filter States
-  const [rankFilterPos, setRankFilterPos] = useState('All');
-  const [rankFilterCardType, setRankFilterCardType] = useState('All');
+  const [rankFilterPos, setRankFilterPos] = useState(['All']);
+  const [rankFilterCardType, setRankFilterCardType] = useState(['All']);
   const [rankFilterClub, setRankFilterClub] = useState('');
   const [rankFilterNationality, setRankFilterNationality] = useState('');
-  const [rankFilterPlaystyle, setRankFilterPlaystyle] = useState('All');
+  const [rankFilterPlaystyle, setRankFilterPlaystyle] = useState(['All']);
   const [rankFilterSkill, setRankFilterSkill] = useState('All');
+  const [rankIncludeSecondary, setRankIncludeSecondary] = useState(false);
 
   // Logic Ported from Web version Leaderboard.jsx
   const categories = useMemo(() => {
     let filtered = [...players];
 
     // Apply Filters
-    if (rankFilterPos !== 'All') {
-      filtered = filtered.filter(p => p.position === rankFilterPos);
+    if (rankFilterPos.length > 0 && !rankFilterPos.includes('All')) {
+      const targetPositions = rankFilterPos.map(p => p.toUpperCase());
+      filtered = filtered.map(p => {
+        const primaryPosMatch = targetPositions.some(tp => p.position?.toUpperCase().includes(tp));
+        
+        // Handle additionalPositions
+        let secondaryPosMatch = false;
+        if (p.additionalPositions) {
+          const sec = Array.isArray(p.additionalPositions) 
+            ? p.additionalPositions 
+            : String(p.additionalPositions).split(',').map(s => s.trim());
+          secondaryPosMatch = sec.some(s => targetPositions.includes(s.toUpperCase()));
+        }
+
+        if (primaryPosMatch) {
+          return { ...p, isSecondaryInRanking: false };
+        } else if (rankIncludeSecondary && secondaryPosMatch) {
+          return { ...p, isSecondaryInRanking: true };
+        }
+        return null;
+      }).filter(p => p !== null);
     }
-    if (rankFilterCardType !== 'All') {
-      filtered = filtered.filter(p => p.cardType === rankFilterCardType);
+    if (rankFilterCardType.length > 0 && !rankFilterCardType.includes('All')) {
+      const targets = rankFilterCardType.map(t => t.toLowerCase().replace(/\s/g, ''));
+      filtered = filtered.filter(p => {
+        const type = (p.cardType || '').toLowerCase().replace(/\s/g, '');
+        return targets.some(target => {
+          if (target === 'standard' && (type === 'normal' || type === 'base' || type === 'standard' || type === 'standardplayer')) return true;
+          if (target === 'highlight' && (type === 'highlights' || type === 'highlight')) return true;
+          if (target === 'trend' && (type === 'trendstars' || type === 'trend' || type === 'trending')) return true;
+          if (target === 'legendary' && (type === 'legend' || type === 'legendary')) return true;
+          return type.includes(target);
+        });
+      });
     }
     if (rankFilterClub) {
       filtered = filtered.filter(p => p.club?.toLowerCase().includes(rankFilterClub.toLowerCase()));
@@ -135,8 +167,8 @@ const RanksScreen = ({ navigation, onClose }) => {
     if (rankFilterNationality) {
       filtered = filtered.filter(p => p.nationality?.toLowerCase().includes(rankFilterNationality.toLowerCase()));
     }
-    if (rankFilterPlaystyle !== 'All') {
-      filtered = filtered.filter(p => p.playstyle === rankFilterPlaystyle);
+    if (rankFilterPlaystyle.length > 0 && !rankFilterPlaystyle.includes('All')) {
+      filtered = filtered.filter(p => rankFilterPlaystyle.includes(p.playstyle));
     }
     // Skill Filter - Robust check
     if (rankFilterSkill !== 'All') {
@@ -172,7 +204,7 @@ const RanksScreen = ({ navigation, onClose }) => {
         { id: 'gapg', title: 'CONTRIBUTION / GM', players: getSortedRatio(p => ((p.goals || 0) + (p.assists || 0)) / p.matches), valueKey: 'totalGA', color: '#FF4499', isRatio: true, suffix: 'AVG' },
       ]
     };
-  }, [players, rankFilterPos, rankFilterCardType, rankFilterClub, rankFilterNationality, rankFilterPlaystyle, rankFilterSkill]);
+  }, [players, rankFilterPos, rankFilterCardType, rankFilterClub, rankFilterNationality, rankFilterPlaystyle, rankFilterSkill, rankIncludeSecondary]);
 
   const currentList = activeTab === 'TOTALS' ? categories.totals : categories.ratios;
 
@@ -191,7 +223,7 @@ const RanksScreen = ({ navigation, onClose }) => {
             <Text style={styles.headerSubtitle}>{players.length} PLAYERS SCANNED</Text>
           </View>
           <TouchableOpacity
-            style={[styles.filterToggle, (rankFilterPos !== 'All' || rankFilterCardType !== 'All' || rankFilterClub || rankFilterNationality || rankFilterPlaystyle !== 'All' || rankFilterSkill !== 'All') && styles.filterToggleActive]}
+            style={[styles.filterToggle, (rankFilterPos.length > 0 && !rankFilterPos.includes('All') || rankFilterCardType.length > 0 && !rankFilterCardType.includes('All') || rankFilterClub || rankFilterNationality || rankFilterPlaystyle.length > 0 && !rankFilterPlaystyle.includes('All') || rankFilterSkill !== 'All') && styles.filterToggleActive]}
             onPress={() => setShowFilters(true)}
           >
             <Text style={styles.filterToggleText}>FILTER</Text>
@@ -245,12 +277,13 @@ const RanksScreen = ({ navigation, onClose }) => {
                 </TouchableOpacity>
               </View>
               <TouchableOpacity onPress={() => {
-                setRankFilterPos('All');
-                setRankFilterCardType('All');
+                setRankFilterPos(['All']);
+                setRankFilterCardType(['All']);
                 setRankFilterClub('');
                 setRankFilterNationality('');
-                setRankFilterPlaystyle('All');
+                setRankFilterPlaystyle(['All']);
                 setRankFilterSkill('All');
+                setRankIncludeSecondary(false);
               }}>
                 <Text style={styles.clearText}>RESET</Text>
               </TouchableOpacity>
@@ -259,12 +292,30 @@ const RanksScreen = ({ navigation, onClose }) => {
             <ScrollView contentContainerStyle={styles.modalBody}>
               <View style={styles.filterRow}>
                 <View style={styles.filterCol}>
-                  <Dropdown
-                    label="POSITION"
-                    options={['All', ...POSITIONS]}
-                    value={rankFilterPos}
-                    onSelect={setRankFilterPos}
-                  />
+                  <View style={styles.posToggleRow}>
+                    <View style={{ flex: 1 }}>
+                      <Dropdown
+                        label="POSITION"
+                        options={['All', ...POSITIONS]}
+                        value={rankFilterPos}
+                        onSelect={setRankFilterPos}
+                        containerStyle={{ marginBottom: 0 }}
+                        multiSelect
+                      />
+                    </View>
+                    <TouchableOpacity 
+                      style={[styles.secToggle, rankIncludeSecondary && styles.secToggleActive, (rankFilterPos.length === 0 || rankFilterPos.includes('All')) && styles.secToggleDisabled]}
+                      onPress={() => (!rankFilterPos.includes('All')) && setRankIncludeSecondary(!rankIncludeSecondary)}
+                      disabled={rankFilterPos.includes('All')}
+                    >
+                      <MaterialCommunityIcons 
+                        name={rankIncludeSecondary ? "layers-plus" : "layers-outline"} 
+                        size={16} 
+                        color={rankIncludeSecondary ? "#000" : COLORS.accent} 
+                      />
+                      <Text style={[styles.secToggleText, rankIncludeSecondary && styles.secToggleTextActive]}>+SEC</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
                 <View style={styles.filterCol}>
                   <Dropdown
@@ -272,6 +323,7 @@ const RanksScreen = ({ navigation, onClose }) => {
                     options={['All', ...CARD_TYPES]}
                     value={rankFilterCardType}
                     onSelect={setRankFilterCardType}
+                    multiSelect
                   />
                 </View>
               </View>
@@ -306,6 +358,7 @@ const RanksScreen = ({ navigation, onClose }) => {
                     options={['All', ...PLAYSTYLES]}
                     value={rankFilterPlaystyle}
                     onSelect={setRankFilterPlaystyle}
+                    multiSelect
                   />
                 </View>
                 <View style={styles.filterCol}>
@@ -403,7 +456,7 @@ const RanksScreen = ({ navigation, onClose }) => {
                     </Text>
                     <Text style={styles.playerMetaFull}>
                       <HighlightText 
-                        text={`${item.position} • ${item.club || 'FREE AGENT'}`} 
+                        text={`${item.position}${item.isSecondaryInRanking ? ' (SEC)' : ''} • ${item.club || 'FREE AGENT'}`} 
                         query={rankSearchQuery} 
                         highlightStyle={{ 
                           color: COLORS.accent,
@@ -555,6 +608,34 @@ const styles = StyleSheet.create({
   tinyCardScale: { transform: [{ scale: 0.65 }] },
   previewCloseBtn: { marginTop: -10, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   previewCloseText: { color: COLORS.accent, fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+  
+  posToggleRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: 12 },
+  secToggle: {
+    height: 48,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 255, 136, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 255, 136, 0.3)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  secToggleActive: {
+    backgroundColor: COLORS.accent,
+    borderColor: COLORS.accent,
+  },
+  secToggleDisabled: {
+    opacity: 0.3,
+  },
+  secToggleText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: COLORS.accent,
+  },
+  secToggleTextActive: {
+    color: '#000',
+  },
 });
 
 export default RanksScreen;

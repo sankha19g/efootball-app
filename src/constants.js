@@ -24,7 +24,7 @@ export const POSITIONS = [
 ];
 
 export const CARD_TYPES = [
-  'Normal', 'POTW', 'Featured', 'Legendary', 'Epic', 'Big Time', 'Show Time', 'Highlights', 'Trendstars'
+  'Standard', 'POTW', 'Featured', 'Epic', 'Big Time', 'Show Time', 'Highlight', 'Legendary', 'Trend'
 ];
 
 export const SPECIAL_SKILLS = [

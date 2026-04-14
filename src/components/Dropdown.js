@@ -21,6 +21,7 @@ const Dropdown = ({
   onSelect, 
   placeholder = 'Select...', 
   searchable = false,
+  multiSelect = false,
   children,
   containerStyle,
   triggerStyle,
@@ -35,9 +36,42 @@ const Dropdown = ({
     : options;
 
   const handleSelect = (item) => {
-    onSelect(item);
-    setVisible(false);
-    setSearch('');
+    if (multiSelect) {
+      let newValue;
+      if (item === 'All') {
+        newValue = ['All'];
+      } else {
+        const currentSelection = Array.isArray(value) ? value : [];
+        if (currentSelection.includes(item)) {
+          newValue = currentSelection.filter(i => i !== item);
+        } else {
+          newValue = [...currentSelection.filter(i => i !== 'All'), item];
+        }
+        if (newValue.length === 0) newValue = ['All'];
+      }
+      onSelect(newValue);
+    } else {
+      onSelect(item);
+      setVisible(false);
+      setSearch('');
+    }
+  };
+
+  const isSelected = (item) => {
+    if (multiSelect) {
+      return Array.isArray(value) && value.includes(item);
+    }
+    return value === item;
+  };
+
+  const getTriggerText = () => {
+    if (multiSelect) {
+      if (!Array.isArray(value) || value.length === 0 || (value.length === 1 && value[0] === 'All')) {
+        return placeholder;
+      }
+      return value.join(', ');
+    }
+    return value || placeholder;
   };
 
   return (
@@ -52,8 +86,11 @@ const Dropdown = ({
           style={[styles.trigger, triggerStyle]} 
           onPress={() => setVisible(true)}
         >
-          <Text style={[styles.triggerText, !value && styles.placeholder, triggerTextStyle]}>
-            {value || placeholder}
+          <Text 
+            numberOfLines={1}
+            style={[styles.triggerText, (!value || (multiSelect && (!Array.isArray(value) || value.length === 0 || value[0] === 'All'))) && styles.placeholder, triggerTextStyle]}
+          >
+            {getTriggerText()}
           </Text>
           <Ionicons name="chevron-down" size={16} color={COLORS.textMuted} />
         </TouchableOpacity>
@@ -97,13 +134,13 @@ const Dropdown = ({
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
                 <TouchableOpacity 
-                  style={[styles.option, value === item && styles.selectedOption]} 
+                  style={[styles.option, isSelected(item) && styles.selectedOption]} 
                   onPress={() => handleSelect(item)}
                 >
-                  <Text style={[styles.optionText, value === item && styles.selectedOptionText]}>
+                  <Text style={[styles.optionText, isSelected(item) && styles.selectedOptionText]}>
                     {item}
                   </Text>
-                  {value === item && (
+                  {isSelected(item) && (
                     <Ionicons name="checkmark" size={20} color={COLORS.accent} />
                   )}
                 </TouchableOpacity>
