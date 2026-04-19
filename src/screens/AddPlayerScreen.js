@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, POSITIONS, PLAYSTYLES, CARD_TYPES } from '../constants';
+import { COLORS, POSITIONS, PLAYSTYLES, CARD_TYPES, WF_USAGE, WF_ACCURACY, INJURY_RES, FORM } from '../constants';
 import { addPlayer, uploadBase64Image } from '../services/playerService';
 
 const FORM_FIELDS = [
@@ -78,14 +78,34 @@ const DropdownField = ({ label, value, options, onSelect }) => {
 };
 
 const AddPlayerScreen = ({ userId, initialData, onSave, onClose }) => {
-  const [form, setForm] = useState(
-    initialData || {
+  const [form, setForm] = useState(() => {
+    if (!initialData) return {
       name: '', club: '', nationality: '', rating: '', cardType: 'Standard',
       position: 'CF', playstyle: 'None', matches: '0', goals: '0', assists: '0',
       image: null, leagueImage: null,
       additionalPositions: [], additionalSkills: ['', '', '', '', ''],
-    }
-  );
+      weakFootUsage: 'Occasionally', weakFootAccuracy: 'Medium', injuryResistance: 'Medium', form: 'Standard',
+    };
+    
+    // Destructure to remove legacy keys from spreading
+    const { 
+      'Weak Foot Usage': _wfu, 'Weak Foot Accuracy': _wfa, 'Injury Resistance': _ir, Form: _f,
+      weak_foot_usage: _wfu2, weak_foot_accuracy: _wfa2, injury_resistance: _ir2,
+      ...cleanData 
+    } = initialData;
+
+    return {
+      ...cleanData,
+      weakFootUsage: initialData.weakFootUsage || initialData['Weak Foot Usage'] || initialData.weak_foot_usage || 'Occasionally',
+      weakFootAccuracy: initialData.weakFootAccuracy || initialData['Weak Foot Accuracy'] || initialData.weak_foot_accuracy || 'Medium',
+      injuryResistance: initialData.injuryResistance || initialData['Injury Resistance'] || initialData.injury_resistance || 'Medium',
+      form: initialData.form || initialData.Form || 'Standard',
+      rating: String(initialData.rating || ''),
+      matches: String(initialData.matches || '0'),
+      goals: String(initialData.goals || '0'),
+      assists: String(initialData.assists || '0'),
+    };
+  });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -237,6 +257,46 @@ const AddPlayerScreen = ({ userId, initialData, onSave, onClose }) => {
             onSelect={(val) => updateField('playstyle', val)}
           />
 
+          <View style={styles.row}>
+            <View style={styles.flex1}>
+              <DropdownField
+                label="WF Usage"
+                value={form.weakFootUsage}
+                options={WF_USAGE}
+                onSelect={(val) => updateField('weakFootUsage', val)}
+              />
+            </View>
+            <View style={{ width: 12 }} />
+            <View style={styles.flex1}>
+              <DropdownField
+                label="WF Accuracy"
+                value={form.weakFootAccuracy}
+                options={WF_ACCURACY}
+                onSelect={(val) => updateField('weakFootAccuracy', val)}
+              />
+            </View>
+          </View>
+
+          <View style={styles.row}>
+            <View style={styles.flex1}>
+              <DropdownField
+                label="Injury Res."
+                value={form.injuryResistance}
+                options={INJURY_RES}
+                onSelect={(val) => updateField('injuryResistance', val)}
+              />
+            </View>
+            <View style={{ width: 12 }} />
+            <View style={styles.flex1}>
+              <DropdownField
+                label="Form"
+                value={form.form}
+                options={FORM}
+                onSelect={(val) => updateField('form', val)}
+              />
+            </View>
+          </View>
+
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
@@ -301,6 +361,8 @@ const styles = StyleSheet.create({
     fontSize: 11, fontWeight: '900', color: 'rgba(255,255,255,0.6)',
     marginBottom: 6, letterSpacing: 1, textTransform: 'uppercase',
   },
+  row: { flexDirection: 'row', alignItems: 'center' },
+  flex1: { flex: 1 },
   input: {
     backgroundColor: '#111114',
     borderWidth: 1,

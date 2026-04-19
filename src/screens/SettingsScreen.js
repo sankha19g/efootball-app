@@ -14,6 +14,7 @@ import { COLORS, STAT_OPTIONS } from '../constants';
 import { LinearGradient } from 'expo-linear-gradient';
 import { lookupPlaystyles, updatePlayerPlaystyle, uploadBase64Image } from '../services/playerService';
 import * as ImagePicker from 'expo-image-picker';
+import PlayerCard from '../components/PlayerCard';
 
 const { width } = Dimensions.get('window');
 
@@ -22,6 +23,20 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
   const [isFixing, setIsFixing] = useState(false);
   const [fixProgress, setFixProgress] = useState(0);
   const sizeMap = ['mini', 'xs', 'sm', 'md', 'lg'];
+
+  const demoPlayer = {
+    name: "L. MESSI",
+    position: "RW",
+    rating: 102,
+    club: "INTER MIAMI CF",
+    nationality: "ARGENTINA",
+    playstyle: "Creative Playmaker",
+    cardType: "Epic",
+    goals: 850,
+    assists: 380,
+    matches: 1050,
+    image: "https://limitic.com/wp-content/uploads/2023/09/messi.png"
+  };
 
   const toggleSetting = (key) => {
     setSettings(prev => ({ ...prev, [key]: !prev[key] }));
@@ -32,11 +47,18 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
   };
 
   const tabs = [
-    { id: 'card', label: 'Card Aesthetics', icon: '🖼️' },
+    { id: 'cardParent', label: 'Player Card Settings', icon: '🖼️' },
+    { id: 'gridSettings', label: 'Grid Settings', icon: '📏' },
+    { id: 'detailsSettings', label: 'Player Details Settings', icon: '📋' },
     { id: 'general', label: 'General / Perf', icon: '⚙️' },
     { id: 'theme', label: 'App Theme', icon: '🎨' },
     { id: 'branding', label: 'Branding', icon: '🏷️' },
     { id: 'maintenance', label: 'Maintenance', icon: '🛠️' }
+  ];
+
+  const subTabs = [
+    { id: 'gridCard', label: 'Grid Cards', icon: '📱', parent: 'cardParent' },
+    { id: 'detailCard', label: 'Player Details Cards', icon: '🔍', parent: 'cardParent' }
   ];
 
   const handleFixPlaystyles = async () => {
@@ -119,12 +141,20 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
     }
   };
 
-  const renderCardSettings = () => (
+  const renderGridCardSettings = () => (
     <View style={styles.tabContent}>
-      <Text style={styles.tabSubheader}>TOGGLE VISUAL ELEMENTS ON CARD FRONT</Text>
+      <View style={styles.previewContainer}>
+        <Text style={styles.previewLabel}>LIVE GRID PREVIEW</Text>
+        <View style={styles.previewCardOuter}>
+          <PlayerCard player={demoPlayer} settings={settings} />
+        </View>
+      </View>
+
+      <Text style={styles.tabSubheader}>TOGGLE VISUAL ELEMENTS ON GRID CARDS</Text>
 
       {[
-        { id: 'showLabels', label: 'Player Name' },
+        { id: 'showName', label: 'Player Name' },
+        { id: 'showLabels', label: 'Stat Labels (M,G,A)' },
         { id: 'showClub', label: 'Club Name' },
         { id: 'showClubBadge', label: 'Club Badge' },
         { id: 'showNationBadge', label: 'Country Badge' },
@@ -203,10 +233,125 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
           </View>
         )}
       </View>
+
+      <View style={styles.sectionDivider} />
+
+      <View style={styles.settingItem}>
+        <View>
+          <Text style={styles.settingLabel}>Enable Premium Overlay</Text>
+          <Text style={styles.settingHint}>Stylish fade & blur effects</Text>
+        </View>
+        <Switch
+          value={settings.showOverlay}
+          onValueChange={() => toggleSetting('showOverlay')}
+          trackColor={{ false: '#333', true: COLORS.accent }}
+          thumbColor={settings.showOverlay ? '#fff' : '#f4f3f4'}
+        />
+      </View>
+
+      {settings.showOverlay && (
+        <>
+          <Text style={styles.tabSubheader}>TRIAL AESTHETICS LAB</Text>
+          <View style={styles.trialBox}>
+            <View style={styles.trialRow}>
+              <Text style={styles.trialLabel}>Overlay Height</Text>
+              <View style={styles.stepper}>
+                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({...p, overlayHeight: Math.max(0, p.overlayHeight - 5)}))}>
+                  <Text style={styles.stepBtnText}>-</Text>
+                </TouchableOpacity>
+                <View style={styles.stepValBox}>
+                  <Text style={styles.stepValText}>{settings.overlayHeight}%</Text>
+                </View>
+                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({...p, overlayHeight: Math.min(100, p.overlayHeight + 5)}))}>
+                  <Text style={styles.stepBtnText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.trialRow}>
+              <Text style={styles.trialLabel}>Black Intensity</Text>
+              <View style={styles.stepper}>
+                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({...p, overlayOpacity: Math.max(0, p.overlayOpacity - 0.05)}))}>
+                  <Text style={styles.stepBtnText}>-</Text>
+                </TouchableOpacity>
+                <View style={styles.stepValBox}>
+                  <Text style={styles.stepValText}>{Math.round(settings.overlayOpacity * 100)}%</Text>
+                </View>
+                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({...p, overlayOpacity: Math.min(1, p.overlayOpacity + 0.05)}))}>
+                  <Text style={styles.stepBtnText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.trialRow}>
+              <Text style={styles.trialLabel}>Blur Depth</Text>
+              <View style={styles.stepper}>
+                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({...p, blurIntensity: Math.max(0, p.blurIntensity - 10)}))}>
+                  <Text style={styles.stepBtnText}>-</Text>
+                </TouchableOpacity>
+                <View style={styles.stepValBox}>
+                  <Text style={styles.stepValText}>{settings.blurIntensity}</Text>
+                </View>
+                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({...p, blurIntensity: Math.min(100, p.blurIntensity + 10)}))}>
+                  <Text style={styles.stepBtnText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </>
+      )}
     </View>
   );
 
-  const renderGeneralSettings = () => (
+  const renderDetailCardSettings = () => (
+    <View style={styles.tabContent}>
+      <View style={styles.previewContainer}>
+        <Text style={styles.previewLabel}>LIVE DETAILS PREVIEW</Text>
+        <View style={styles.previewCardOuter}>
+          <PlayerCard 
+            player={demoPlayer} 
+            settings={{
+              ...settings,
+              showLabels: settings.detailsShowLabels,
+              showClub: settings.detailsShowClub,
+              showClubBadge: settings.detailsShowClubBadge,
+              showNationBadge: settings.detailsShowNationBadge,
+              showPlaystyle: settings.detailsShowPlaystyle,
+              showRatings: settings.detailsShowRatings,
+              showStats: false
+            }} 
+          />
+        </View>
+      </View>
+
+      <Text style={styles.tabSubheader}>TOGGLE VISUAL ELEMENTS ON DETAILS MODAL CARD</Text>
+
+      {[
+        { id: 'detailsShowLabels', label: 'Player Name' },
+        { id: 'detailsShowClub', label: 'Club Name' },
+        { id: 'detailsShowClubBadge', label: 'Club Badge' },
+        { id: 'detailsShowNationBadge', label: 'Country Badge' },
+        { id: 'detailsShowPlaystyle', label: 'Player Playstyle' },
+        { id: 'detailsShowRatings', label: 'Player Rating' }
+      ].map(item => (
+        <TouchableOpacity
+          key={item.id}
+          style={styles.settingItem}
+          onPress={() => toggleSetting(item.id)}
+        >
+          <Text style={styles.settingLabel}>{item.label}</Text>
+          <Switch
+            value={settings[item.id]}
+            onValueChange={() => toggleSetting(item.id)}
+            trackColor={{ false: '#333', true: COLORS.accent }}
+            thumbColor={settings[item.id] ? '#fff' : '#f4f3f4'}
+          />
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  const renderGridSettings = () => (
     <View style={styles.tabContent}>
       <Text style={styles.tabSubheader}>GALLERY DENSITY</Text>
       <View style={styles.gridBox}>
@@ -223,22 +368,52 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
               onPress={() => handleSliderChange(sz)}
               style={[styles.scalePoint, settings.cardSize === sz && styles.scalePointActive]}
             >
-              <Text style={[styles.scalePointText, settings.cardSize === sz && { color: COLORS.accent }]}>
-                {sz.toUpperCase()}
-              </Text>
+              <View style={[styles.scaleDot, settings.cardSize === sz && styles.scaleDotActive]} />
+              <Text style={[styles.scaleLabel, settings.cardSize === sz && styles.scaleLabelActive]}>{sz.toUpperCase()}</Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
+    </View>
+  );
 
-      <Text style={[styles.tabSubheader, { marginTop: 30 }]}>OPTIMIZATION</Text>
+  const renderDetailsSettings = () => (
+    <View style={styles.tabContent}>
+      <Text style={styles.tabSubheader}>MODAL SECTION VISIBILITY</Text>
+      {[
+        { id: 'detailsShowRanking', label: 'Show Ranking Tab' },
+        { id: 'detailsShowBuilds', label: 'Show Builds Tab' },
+        { id: 'detailsShowMedia', label: 'Show Media Tab' },
+        { id: 'detailsShowEFHub', label: 'Show EFHub Button' },
+        { id: 'detailsAutoSlide', label: 'Auto-Start Media Slideshow' }
+      ].map(item => (
+        <TouchableOpacity
+          key={item.id}
+          style={styles.settingItem}
+          onPress={() => toggleSetting(item.id)}
+        >
+          <Text style={styles.settingLabel}>{item.label}</Text>
+          <Switch
+            value={settings[item.id]}
+            onValueChange={() => toggleSetting(item.id)}
+            trackColor={{ false: '#333', true: COLORS.accent }}
+            thumbColor={settings[item.id] ? '#fff' : '#f4f3f4'}
+          />
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  const renderGeneralSettings = () => (
+    <View style={styles.tabContent}>
+      <Text style={styles.tabSubheader}>PERFORMANCE</Text>
       <TouchableOpacity
         style={styles.settingItem}
         onPress={() => toggleSetting('highPerf')}
       >
         <View>
-          <Text style={styles.settingLabel}>Eco Mode</Text>
-          <Text style={styles.settingHint}>Disables Blur & Bloom for performance</Text>
+          <Text style={styles.settingLabel}>High Performance Mode</Text>
+          <Text style={styles.settingHint}>Reduces animations for slower devices</Text>
         </View>
         <Switch
           value={settings.highPerf}
@@ -341,6 +516,35 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
     );
   };
 
+  const renderCardSubMenu = () => (
+    <View style={styles.tabContent}>
+      <Text style={styles.tabSubheader}>SELECT CARD VIEW TO CUSTOMIZE</Text>
+      <View style={styles.menuGrid}>
+        {subTabs.map(sub => (
+          <TouchableOpacity
+            key={sub.id}
+            style={styles.menuButton}
+            onPress={() => setActiveTab(sub.id)}
+          >
+            <LinearGradient
+              colors={['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)']}
+              style={styles.menuButtonGradient}
+            >
+              <View style={[styles.menuIconContainer, { backgroundColor: 'rgba(255,255,255,0.03)' }]}>
+                <Text style={styles.menuIconText}>{sub.icon}</Text>
+              </View>
+              <View style={styles.menuTextContainer}>
+                <Text style={styles.menuLabel}>{sub.label}</Text>
+                <Text style={styles.menuSublabel}>{sub.id === 'gridCard' ? 'MAIN GALLERY VIEW' : 'FULL SCREEN MODAL'}</Text>
+              </View>
+              <Text style={styles.menuArrow}>→</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+
   const renderMainMenu = () => (
     <View style={styles.menuGrid}>
       {tabs.map(tab => (
@@ -358,7 +562,7 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
             </View>
             <View style={styles.menuTextContainer}>
               <Text style={styles.menuLabel}>{tab.label}</Text>
-              <Text style={styles.menuSublabel}>{tab.id === 'card' ? 'UI & Aesthetics' : tab.id === 'general' ? 'App Performance' : tab.id === 'theme' ? 'Visual Styles' : tab.id === 'branding' ? 'User Logo' : 'Database Repair'}</Text>
+              <Text style={styles.menuSublabel}>{tab.id === 'cardParent' ? 'Visual Configurations' : tab.id === 'gridSettings' ? 'Density & Layout' : tab.id === 'detailsSettings' ? 'Modal Tabs & Behavior' : tab.id === 'general' ? 'App Performance' : tab.id === 'theme' ? 'Visual Styles' : tab.id === 'branding' ? 'User Logo' : 'Database Repair'}</Text>
             </View>
             <Text style={styles.menuArrow}>→</Text>
           </LinearGradient>
@@ -367,24 +571,34 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
     </View>
   );
 
+  const currentTab = [...tabs, ...subTabs].find(t => t.id === activeTab);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={activeTab ? () => setActiveTab(null) : onClose}
+          onPress={() => {
+            if (!activeTab) onClose();
+            else if (subTabs.some(s => s.id === activeTab)) setActiveTab('cardParent');
+            else setActiveTab(null);
+          }}
           style={styles.backBtn}
         >
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <View>
-          <Text style={styles.headerTitle}>{activeTab ? tabs.find(t => t.id === activeTab).label.toUpperCase() : 'SETTINGS'}</Text>
+          <Text style={styles.headerTitle}>{activeTab ? currentTab?.label.toUpperCase() : 'SETTINGS'}</Text>
           <Text style={styles.headerSub}>{activeTab ? 'CONFIGURE PREFERENCES' : 'PREFERENCES & CONFIG'}</Text>
         </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {activeTab === null && renderMainMenu()}
-        {activeTab === 'card' && renderCardSettings()}
+        {activeTab === 'cardParent' && renderCardSubMenu()}
+        {activeTab === 'gridCard' && renderGridCardSettings()}
+        {activeTab === 'detailCard' && renderDetailCardSettings()}
+        {activeTab === 'gridSettings' && renderGridSettings()}
+        {activeTab === 'detailsSettings' && renderDetailsSettings()}
         {activeTab === 'general' && renderGeneralSettings()}
         {activeTab === 'theme' && renderThemeSettings()}
         {activeTab === 'branding' && renderBrandingSettings()}
@@ -478,7 +692,83 @@ const styles = StyleSheet.create({
   pendingVal: { color: COLORS.accent, fontSize: 9, fontWeight: '900' },
 
   footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, backgroundColor: '#0a0a0c', alignItems: 'center' },
-  footerText: { color: 'rgba(255,255,255,0.1)', fontSize: 8, fontWeight: '900', letterSpacing: 3 }
+  footerText: { color: 'rgba(255,255,255,0.1)', fontSize: 8, fontWeight: '900', letterSpacing: 3 },
+
+  previewContainer: {
+    marginBottom: 30,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 25,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    alignItems: 'center'
+  },
+  previewLabel: {
+    color: COLORS.accent,
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 2,
+    marginBottom: 15,
+    opacity: 0.6
+  },
+  previewCardOuter: {
+    width: 140, // Fixed width for preview
+    elevation: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 15
+  },
+
+  trialBox: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 20,
+    padding: 15,
+    gap: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)'
+  },
+  trialRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  trialLabel: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5
+  },
+  stepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    overflow: 'hidden'
+  },
+  stepBtn: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(255,255,255,0.05)'
+  },
+  stepBtnText: {
+    color: COLORS.accent,
+    fontSize: 16,
+    fontWeight: '900'
+  },
+  stepValBox: {
+    minWidth: 60,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  stepValText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '900'
+  }
 });
 
 export default SettingsScreen;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   TextInput,
   Alert,
   Linking,
+  Animated,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
@@ -168,6 +169,72 @@ const SkillSelectionModal = ({ visible, onClose, coreSkills, additionalSkills, o
             type={pickerType}
             currentSkills={allOwnedSkills}
           />
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+// 5. Squad Tags Management Modal
+const TagsEditModal = ({ visible, onClose, tags, onAdd, onRemove }) => {
+  const [newTag, setNewTag] = useState('');
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.pickerPopupCard}>
+          <View style={styles.pickerHeader}>
+            <Text style={styles.pickerTitle}>MANAGE SQUAD TAGS</Text>
+            <TouchableOpacity onPress={onClose} style={styles.pickerClose}>
+              <Text style={styles.pickerCloseIcon}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={{ padding: 20 }}>
+            <View style={[styles.searchBox, { margin: 0, marginBottom: 20 }]}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="New tag name..."
+                placeholderTextColor="rgba(255,255,255,0.2)"
+                value={newTag}
+                onChangeText={setNewTag}
+                autoFocus
+                onSubmitEditing={() => {
+                  if (newTag.trim()) {
+                    onAdd(newTag.trim());
+                    setNewTag('');
+                  }
+                }}
+              />
+              <TouchableOpacity 
+                style={{ paddingHorizontal: 15 }}
+                onPress={() => {
+                  if (newTag.trim()) {
+                    onAdd(newTag.trim());
+                    setNewTag('');
+                  }
+                }}
+              >
+                <Text style={{ color: COLORS.accent, fontSize: 24, fontWeight: '900' }}>+</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ maxHeight: 350 }}>
+              <View style={[styles.editPillsRow, { paddingBottom: 20 }]}>
+                {tags.map((tag, idx) => (
+                  <TouchableOpacity 
+                    key={idx} 
+                    style={[styles.editPill, { borderColor: 'rgba(0, 195, 255, 0.4)', backgroundColor: 'rgba(0, 195, 255, 0.05)' }]}
+                    onPress={() => onRemove(idx)}
+                  >
+                    <Text style={[styles.editPillText, { color: COLORS.blue }]}>{tag.toUpperCase()}</Text>
+                    <Text style={styles.editPillRemove}>✕</Text>
+                  </TouchableOpacity>
+                ))}
+                {tags.length === 0 && (
+                  <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 10, textAlign: 'center', width: '100%', marginTop: 20, fontStyle: 'italic' }}>No tags available for this player.</Text>
+                )}
+              </View>
+            </ScrollView>
+          </View>
         </View>
       </View>
     </Modal>
@@ -725,6 +792,136 @@ const MediaView = ({ media, onAddMedia, onDeleteMedia, onToggleAspect }) => {
   );
 };
 
+const OtherVersionsView = ({ currentPlayer, allPlayers, onSelectPlayer }) => {
+  const { setCompareQueue } = useAppContext();
+  const versions = useMemo(() => {
+    if (!currentPlayer || !allPlayers) return [];
+    
+    const normalize = (str) => str?.toLowerCase()
+      .trim()
+      .replace(/\./g, ' ')
+      .replace(/\s+/g, ' ')
+      || '';
+
+    const currentName = normalize(currentPlayer.name);
+    const currentParts = currentName.split(' ');
+    
+    const filtered = allPlayers.filter(p => {
+      const pId = p._id || p.id || p.playerId;
+      const currentId = currentPlayer._id || currentPlayer.id || currentPlayer.playerId;
+      
+      // 1. Identity match (Include self)
+      if (pId === currentId) return true;
+
+      const pName = normalize(p.name);
+      if (!pName) return false;
+
+      // 2. Direct name match
+      if (currentName === pName) return true;
+
+      const pParts = pName.split(' ');
+      
+      // 3. Similarity match (Check first and last names)
+      if (currentParts.length > 0 && pParts.length > 0) {
+        const last1 = currentParts[currentParts.length - 1];
+        const last2 = pParts[pParts.length - 1];
+        
+        if (last1 === last2 && last1.length > 2) {
+          const first1 = currentParts[0];
+          const first2 = pParts[0];
+          const isFirstSimilar = first1 === first2 || 
+                                (first1.length === 1 && first2.startsWith(first1)) || 
+                                (first2.length === 1 && first1.startsWith(first2));
+          if (isFirstSimilar) return true;
+        }
+
+        if (currentParts.length === 1 || pParts.length === 1) {
+          const short = currentParts.length === 1 ? currentName : pName;
+          const long = currentParts.length === 1 ? pName : currentName;
+          if (short.length >= 4 && long.includes(short)) {
+            const longParts = long.split(' ');
+            if (longParts.includes(short)) return true;
+          }
+        }
+      }
+
+      return false;
+    });
+
+    return filtered.sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0));
+  }, [currentPlayer, allPlayers]);
+
+  return (
+    <View style={styles.otherVersionsContainer}>
+      <View style={styles.versionsHeaderRow}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <Text style={styles.sectionTitle}>SQUAD VERSIONS</Text>
+          <View style={styles.versionBadge}>
+            <Text style={styles.versionBadgeText}>{versions.length} CARDS</Text>
+          </View>
+        </View>
+
+        <TouchableOpacity 
+          style={styles.compareBtn}
+          onPress={() => {
+            setCompareQueue(versions);
+            Alert.alert('Compare Ready', `${versions.length} players added to Comparison Hub.`);
+          }}
+        >
+          <MaterialCommunityIcons name="scale-balance" size={14} color="#000" />
+          <Text style={styles.compareBtnText}>COMPARE</Text>
+        </TouchableOpacity>
+      </View>
+      
+      {versions.length > 0 ? (
+        <ScrollView contentContainerStyle={styles.versionsGrid} showsVerticalScrollIndicator={false}>
+          {versions.map((p, idx) => {
+            const isCurrent = (p._id || p.id || p.playerId) === (currentPlayer._id || currentPlayer.id || currentPlayer.playerId);
+            return (
+              <TouchableOpacity 
+                key={p._id || idx} 
+                style={[styles.versionCard, isCurrent && styles.versionCardCurrent]}
+                onPress={() => onSelectPlayer(p)}
+              >
+                <View style={styles.versionCardTop}>
+                  {isCurrent && (
+                    <View style={styles.currentBadge}>
+                      <Text style={styles.currentBadgeText}>VIEWING</Text>
+                    </View>
+                  )}
+                  <PlayerCard 
+                    player={p} 
+                    onPress={onSelectPlayer}
+                    isSelectionMode={false}
+                    settings={{ 
+                      cardSize: 'mini', 
+                      showOverlay: true,
+                      showRatings: true,
+                      showName: true,
+                      showStats: false,
+                      showClub: false,
+                      showPlaystyle: false
+                    }} 
+                  />
+                </View>
+                <View style={styles.versionCardBody}>
+                  <Text style={styles.versionCardType} numberOfLines={1}>{p.cardType || 'BASE'}</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      ) : (
+        <View style={styles.emptyProg}>
+          <MaterialCommunityIcons name="account-search-outline" size={48} color="rgba(255,255,255,0.05)" />
+          <Text style={styles.emptyProgText}>NO OTHER VERSIONS</Text>
+          <Text style={styles.emptyProgSub}>ONLY ONE VERSION OF THIS PLAYER EXISTS IN YOUR SQUAD</Text>
+        </View>
+      )}
+    </View>
+  );
+};
+
 const MediaAddModal = ({ visible, onClose, onAdd, userId }) => {
   const [url, setUrl] = useState('');
   const [mediaType, setMediaType] = useState('video');
@@ -979,7 +1176,7 @@ const PositionGrid = React.memo(({ primaryPosition, additionalPositions }) => {
 });
 
 const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDetailed, onUpdate }) => {
-  const { user } = useAppContext();
+  const { user, settings } = useAppContext();
   const [rankingContext, setRankingContext] = useState('all');
   const [showRankDropdown, setShowRankDropdown] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
@@ -993,7 +1190,7 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
   const [showSavedProgressions, setShowSavedProgressions] = useState(false);
   const [showMediaAdd, setShowMediaAdd] = useState(false);
   const [editingBuild, setEditingBuild] = useState(null);
-  const [pickerType, setPickerType] = useState('skill'); // 'skill' or 'pos'
+  const [pickerType, setPickerType] = useState('skill'); // 'skill', 'pos', or 'tags'
 
   const gradientColors = useMemo(() => {
     if (!player) return ['#0a0a0c', '#0a0a0c'];
@@ -1006,17 +1203,36 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
   const [additionalPositions, setAdditionalPositions] = useState([]);
   const [tags, setTags] = useState([]);
   const [media, setMedia] = useState([]);
-  const [newTag, setNewTag] = useState('');
+
+  const zoomAnim = useRef(new Animated.Value(0.96)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (player) {
+    if (visible && player) {
+      // Smooth zoom-in transition when switching players or opening modal
+      zoomAnim.setValue(0.96);
+      fadeAnim.setValue(0);
+      Animated.parallel([
+        Animated.spring(zoomAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          tension: 50,
+          friction: 7
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 350,
+          useNativeDriver: true
+        })
+      ]).start();
+
       setCoreSkills(player.skills || []);
       setAdditionalSkills(player.additionalSkills || ['', '', '', '', '']);
       setAdditionalPositions(getSecondaryPositionsFromPlayer(player).filter(pos => pos !== player.position));
       setTags(player.tags || []);
       setMedia(player.media || []);
     }
-  }, [player]);
+  }, [player, visible]);
 
   const rankInfo = useMemo(() => {
     if (!player || !players) return { matches: '-', ga: '-', goals: '-', assists: '-', gpg: '-', apg: '-', gapg: '-', total: 0 };
@@ -1148,6 +1364,7 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
     <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
+        <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ scale: zoomAnim }] }}>
         <LinearGradient colors={gradientColors} style={styles.headerBackground}>
           <View style={styles.safeHeader}>
             <View style={styles.topNav}>
@@ -1160,29 +1377,57 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
             </View>
 
             <View style={styles.tabsContainer}>
-              <View style={styles.modalTabs}>
-                <TouchableOpacity style={[styles.tabBtn, modalPage === 0 && styles.tabBtnActive]} onPress={() => setModalPage(0)}>
-                  <Text style={[styles.tabText, modalPage === 0 && styles.tabTextActive]}>DETAILS</Text>
-                  {modalPage === 0 && <View style={styles.tabActiveLine} />}
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.tabBtn, modalPage === 1 && styles.tabBtnActive]} onPress={() => setModalPage(1)}>
-                  <Text style={[styles.tabText, modalPage === 1 && styles.tabTextActive]}>RANKING</Text>
-                  {modalPage === 1 && <View style={styles.tabActiveLine} />}
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.tabBtn, modalPage === 2 && styles.tabBtnActive]} onPress={() => setModalPage(2)}>
-                  <Text style={[styles.tabText, modalPage === 2 && styles.tabTextActive]}>BUILDS</Text>
-                  {modalPage === 2 && <View style={styles.tabActiveLine} />}
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.tabBtn, modalPage === 3 && styles.tabBtnActive]} onPress={() => setModalPage(3)}>
-                  <Text style={[styles.tabText, modalPage === 3 && styles.tabTextActive]}>MEDIA</Text>
-                  {modalPage === 3 && <View style={styles.tabActiveLine} />}
-                </TouchableOpacity>
-              </View>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false} 
+                contentContainerStyle={styles.tabsScrollInner}
+              >
+                <View style={styles.modalTabs}>
+                  <TouchableOpacity style={[styles.tabBtn, modalPage === 0 && styles.tabBtnActive]} onPress={() => setModalPage(0)}>
+                    <Text style={[styles.tabText, modalPage === 0 && styles.tabTextActive]}>DETAILS</Text>
+                    {modalPage === 0 && <View style={styles.tabActiveLine} />}
+                  </TouchableOpacity>
+                  {settings.detailsShowRanking && (
+                    <TouchableOpacity style={[styles.tabBtn, modalPage === 1 && styles.tabBtnActive]} onPress={() => setModalPage(1)}>
+                      <Text style={[styles.tabText, modalPage === 1 && styles.tabTextActive]}>RANKING</Text>
+                      {modalPage === 1 && <View style={styles.tabActiveLine} />}
+                    </TouchableOpacity>
+                  )}
+                  {settings.detailsShowBuilds && (
+                    <TouchableOpacity style={[styles.tabBtn, modalPage === 2 && styles.tabBtnActive]} onPress={() => setModalPage(2)}>
+                      <Text style={[styles.tabText, modalPage === 2 && styles.tabTextActive]}>BUILDS</Text>
+                      {modalPage === 2 && <View style={styles.tabActiveLine} />}
+                    </TouchableOpacity>
+                  )}
+                  {settings.detailsShowMedia && (
+                    <TouchableOpacity style={[styles.tabBtn, modalPage === 3 && styles.tabBtnActive]} onPress={() => setModalPage(3)}>
+                      <Text style={[styles.tabText, modalPage === 3 && styles.tabTextActive]}>MEDIA</Text>
+                      {modalPage === 3 && <View style={styles.tabActiveLine} />}
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity style={[styles.tabBtn, modalPage === 4 && styles.tabBtnActive]} onPress={() => setModalPage(4)}>
+                    <Text style={[styles.tabText, modalPage === 4 && styles.tabTextActive]}>VERSIONS</Text>
+                    {modalPage === 4 && <View style={styles.tabActiveLine} />}
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
             </View>
 
             <View style={styles.heroSection}>
               <View style={styles.cardContainer}>
-                <PlayerCard player={player} settings={{ showStats: false }} />
+                <PlayerCard 
+                  player={player} 
+                  settings={{ 
+                    ...settings,
+                    showLabels: settings.detailsShowLabels,
+                    showClub: settings.detailsShowClub,
+                    showClubBadge: settings.detailsShowClubBadge,
+                    showNationBadge: settings.detailsShowNationBadge,
+                    showPlaystyle: settings.detailsShowPlaystyle,
+                    showRatings: settings.detailsShowRatings,
+                    showStats: false 
+                  }} 
+                />
               </View>
               <View style={styles.basicInfo}>
                 <View style={styles.nameHeader}>
@@ -1202,26 +1447,28 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
                     <CompactInfo icon="👤" text={`${player.age || '--'} • ${player.strongFoot || player.foot || player.strong_foot || player.strongfoot || '--'} • ${player.height || '--'}CM`} />
                   </View>
 
-                    <TouchableOpacity 
-                      style={styles.efhubBtn}
-                      onPress={() => {
-                        const id = player.playerId || player.pesdb_id;
-                        if (id) {
-                          Linking.openURL(`https://efhub.com/players/${id}`);
-                        } else {
-                          Alert.alert('No ID', 'This player does not have a valid ID for EFHub.');
-                        }
-                      }}
-                    >
-                      <View style={styles.efhubSquare}>
-                        <Image 
-                          source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-u_c9SzJg_Kfn9aRGf2y5-0drkCDmurWmQQ&s' }} 
-                          style={{ width: 28, height: 28, borderRadius: 8 }}
-                          resizeMode="contain"
-                        />
-                      </View>
-                      <Text style={styles.efhubText}>EFHUB</Text>
-                    </TouchableOpacity>
+                    {settings.detailsShowEFHub && (
+                      <TouchableOpacity 
+                        style={styles.efhubBtn}
+                        onPress={() => {
+                          const id = player.playerId || player.pesdb_id;
+                          if (id) {
+                            Linking.openURL(`https://efhub.com/players/${id}`);
+                          } else {
+                            Alert.alert('No ID', 'This player does not have a valid ID for EFHub.');
+                          }
+                        }}
+                      >
+                        <View style={styles.efhubSquare}>
+                          <Image 
+                            source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-u_c9SzJg_Kfn9aRGf2y5-0drkCDmurWmQQ&s' }} 
+                            style={{ width: 28, height: 28, borderRadius: 8 }}
+                            resizeMode="contain"
+                          />
+                        </View>
+                        <Text style={styles.efhubText}>EFHUB</Text>
+                      </TouchableOpacity>
+                    )}
                 </View>
                 {player.cardType && <Text style={styles.cardTypeText}>{player.cardType.toUpperCase()}</Text>}
               </View>
@@ -1343,45 +1590,17 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
 
                 <View style={[styles.additionalSkillsContainer, { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.03)', marginTop: 20, paddingTop: 20 }]}>
                   <View style={styles.additionalHeader}>
-                    <Text style={[styles.additionalTitle, { color: COLORS.blue }]}>TAGS</Text>
-                    <View style={styles.tagInputRow}>
-                      <TextInput
-                        style={styles.tagsInput}
-                        placeholder="Add tag..."
-                        placeholderTextColor="rgba(255,255,255,0.2)"
-                        value={newTag}
-                        onChangeText={setNewTag}
-                        onSubmitEditing={() => {
-                          if (newTag.trim()) {
-                            handleManagementUpdate(newTag.trim(), 'add_tag');
-                            setNewTag('');
-                          }
-                        }}
-                      />
-                      <TouchableOpacity
-                        style={styles.addTagSmallBtn}
-                        onPress={() => {
-                          if (newTag.trim()) {
-                            handleManagementUpdate(newTag.trim(), 'add_tag');
-                            setNewTag('');
-                          }
-                        }}
-                      >
-                        <Text style={styles.addTagSmallBtnText}>+</Text>
-                      </TouchableOpacity>
-                    </View>
+                    <Text style={[styles.additionalTitle, { color: COLORS.blue }]}>SQUAD TAGS</Text>
+                    <TouchableOpacity onPress={() => { setPickerType('tags'); setShowPicker(true); }}>
+                      <Text style={styles.miniEditIcon}>✏️</Text>
+                    </TouchableOpacity>
                   </View>
                   <View style={styles.tagsDisplayRow}>
                     {tags.length > 0 ? (
                       tags.map((tag, idx) => (
-                        <TouchableOpacity
-                          key={idx}
-                          style={styles.tagPill}
-                          onPress={() => handleManagementUpdate(idx, 'remove_tag')}
-                        >
+                        <View key={idx} style={styles.tagPill}>
                           <Text style={styles.tagPillText}>{tag.toUpperCase()}</Text>
-                          <Text style={styles.tagPillRemove}>✕</Text>
-                        </TouchableOpacity>
+                        </View>
                       ))
                     ) : (
                       <Text style={styles.noTagsText}>NO TAGS ADDED</Text>
@@ -1440,7 +1659,7 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
             </View>
           )}
 
-          {modalPage === 1 && (
+          {modalPage === 1 && settings.detailsShowRanking && (
             <View key="page-ranking">
               <ComparisonView
                 player={player}
@@ -1457,7 +1676,7 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
             </View>
           )}
 
-          {modalPage === 2 && (
+          {modalPage === 2 && settings.detailsShowBuilds && (
             <View key="page-prog" style={{ padding: 20 }}>
               <ProgressionView
                 player={player}
@@ -1473,7 +1692,7 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
             </View>
           )}
 
-          {modalPage === 3 && (
+          {modalPage === 3 && settings.detailsShowMedia && (
             <View key="page-media" style={{ padding: 20 }}>
               <MediaView
                 media={media}
@@ -1489,6 +1708,19 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
                   next[idx] = { ...next[idx], aspect: current === 'portrait' ? 'landscape' : 'portrait' };
                   setMedia(next);
                   onUpdate?.(player?._id, { media: next });
+                }}
+              />
+            </View>
+          )}
+
+          {modalPage === 4 && (
+            <View key="page-versions" style={{ paddingHorizontal: 8, paddingTop: 10 }}>
+              <OtherVersionsView 
+                currentPlayer={player} 
+                allPlayers={players} 
+                onSelectPlayer={(p) => {
+                  // Switch to the selected player version
+                  onUpdate?.('switch_player', p); 
                 }}
               />
             </View>
@@ -1514,6 +1746,16 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
             additionalSkills={additionalSkills}
             onClose={() => setShowPicker(false)}
             onUpdate={handleManagementUpdate}
+          />
+        )}
+
+        {showPicker && pickerType === 'tags' && (
+          <TagsEditModal
+            visible={true}
+            tags={tags}
+            onClose={() => setShowPicker(false)}
+            onAdd={(tag) => handleManagementUpdate(tag, 'add_tag')}
+            onRemove={(idx) => handleManagementUpdate(idx, 'remove_tag')}
           />
         )}
 
@@ -1564,6 +1806,7 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
           }}
         />
 
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -1577,7 +1820,24 @@ const styles = StyleSheet.create({
   tabsContainer: { paddingHorizontal: 20, marginTop: -2, marginBottom: 15, alignItems: 'center' },
   modalTabs: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 24, padding: 4, gap: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   tabBtn: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 18, position: 'relative' },
-  tabBtnActive: { backgroundColor: 'rgba(255,255,255,0.05)' },
+  tabBtnActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
+  
+  // VERSIONS STYLES
+  otherVersionsContainer: { flex: 1 },
+  versionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingBottom: 30 },
+  versionsHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  versionBadge: { backgroundColor: 'rgba(0, 255, 136, 0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  versionBadgeText: { color: COLORS.accent, fontSize: 10, fontWeight: '900' },
+  versionCard: { width: '32%', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', marginBottom: 8 },
+  versionCardCurrent: { borderColor: COLORS.accent, backgroundColor: 'rgba(0, 255, 136, 0.05)', borderWidth: 1.5 },
+  currentBadge: { position: 'absolute', top: 5, right: 5, backgroundColor: COLORS.accent, paddingHorizontal: 5, paddingVertical: 2, borderRadius: 4, zIndex: 100 },
+  currentBadgeText: { color: '#000', fontSize: 6, fontWeight: '900' },
+  versionCardTop: { height: 110, padding: 4 },
+  versionCardBody: { padding: 8, backgroundColor: 'rgba(0,0,0,0.2)', alignItems: 'center' },
+  versionCardType: { color: 'rgba(255,255,255,0.4)', fontSize: 7, fontWeight: '800', marginBottom: 2 },
+  versionCardRating: { color: '#fff', fontSize: 13, fontWeight: '900' },
+  compareBtn: { backgroundColor: COLORS.accent, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 6 },
+  compareBtnText: { color: '#000', fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
   tabText: { color: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: '900', letterSpacing: 1 },
   tabTextActive: { color: COLORS.accent },
   tabActiveLine: { position: 'absolute', bottom: 4, left: '35%', right: '35%', height: 2, backgroundColor: COLORS.accent, borderRadius: 2 },

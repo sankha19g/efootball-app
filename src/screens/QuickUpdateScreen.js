@@ -344,41 +344,56 @@ const QuickUpdateScreen = ({ players, onUpdate, onClose, initialSelectedIds = nu
         renderItem={renderPlayer}
         ListHeaderComponent={
           <View>
-            <View style={styles.toolbar}>
-              <TouchableOpacity onPress={onClose} style={styles.iconBtn}>
-                <MaterialCommunityIcons name="arrow-left" size={20} color="rgba(255,255,255,0.5)" />
-              </TouchableOpacity>
-              {!isSearchExpanded && <View style={styles.toolbarTitle}><Text style={styles.titleSmall}>QUICK UPDATES</Text></View>}
-              <View style={styles.toolbarActions}>
+              <View style={styles.toolbar}>
+                <TouchableOpacity onPress={onClose} style={styles.iconBtn}>
+                  <MaterialCommunityIcons name="arrow-left" size={20} color="rgba(255,255,255,0.5)" />
+                </TouchableOpacity>
+
                 {isSearchExpanded ? (
                   <View style={styles.expandedSearch}>
-                    <TextInput autoFocus style={styles.searchField} value={search} onChangeText={setSearch} placeholder="Search players..." placeholderTextColor="rgba(255,255,255,0.2)" />
-                    <TouchableOpacity onPress={toggleSearch} style={styles.searchClose}><MaterialCommunityIcons name="close" size={18} color="#fff" /></TouchableOpacity>
+                    <TextInput 
+                      autoFocus 
+                      style={styles.searchField} 
+                      value={search} 
+                      onChangeText={setSearch} 
+                      placeholder="Search players..." 
+                      placeholderTextColor="rgba(255,255,255,0.2)" 
+                    />
+                    {search.length > 0 && (
+                      <TouchableOpacity onPress={() => setSearch('')} style={styles.searchClear}>
+                        <MaterialCommunityIcons name="close-circle" size={18} color="rgba(255,255,255,0.4)" />
+                      </TouchableOpacity>
+                    )}
+                    <TouchableOpacity onPress={toggleSearch} style={styles.searchClose}>
+                      <MaterialCommunityIcons name="close" size={20} color="#fff" />
+                    </TouchableOpacity>
                   </View>
                 ) : (
                   <>
-                    <TouchableOpacity onPress={toggleSearch} style={styles.iconBtn}><MaterialCommunityIcons name="magnify" size={20} color="#fff" /></TouchableOpacity>
-                    <TouchableOpacity onPress={() => { LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); setIsManualMode(!isManualMode); }} style={[styles.iconBtn, isManualMode && styles.iconBtnActive]}>
-                      <MaterialCommunityIcons name={isManualMode ? "keyboard" : "mouse"} size={18} color={isManualMode ? "#00ffaa" : "#fff"} />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => { LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); setIsRatingsUnlocked(!isRatingsUnlocked); }} style={[styles.iconBtn, isRatingsUnlocked && styles.iconBtnWarning]}>
-                      <MaterialCommunityIcons name={isRatingsUnlocked ? "lock-open" : "lock"} size={18} color={isRatingsUnlocked ? "#ff9500" : "#fff"} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => {
-                        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                        const next = !isSelectionMode;
-                        setIsSelectionMode(next);
-                        if (!next) setSelectedIds(new Set());
-                      }}
-                      style={[styles.iconBtn, isSelectionMode && styles.iconBtnActive]}
-                    >
-                      <MaterialCommunityIcons name={isSelectionMode ? "check-circle" : "check-circle-outline"} size={18} color={isSelectionMode ? "#00ffaa" : "#fff"} />
-                    </TouchableOpacity>
+                    <View style={styles.toolbarTitle}><Text style={styles.titleSmall}>QUICK UPDATES</Text></View>
+                    <View style={styles.toolbarActions}>
+                      <TouchableOpacity onPress={toggleSearch} style={styles.iconBtn}><MaterialCommunityIcons name="magnify" size={20} color="#fff" /></TouchableOpacity>
+                      <TouchableOpacity onPress={() => { LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); setIsManualMode(!isManualMode); }} style={[styles.iconBtn, isManualMode && styles.iconBtnActive]}>
+                        <MaterialCommunityIcons name={isManualMode ? "keyboard" : "mouse"} size={18} color={isManualMode ? "#00ffaa" : "#fff"} />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => { LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); setIsRatingsUnlocked(!isRatingsUnlocked); }} style={[styles.iconBtn, isRatingsUnlocked && styles.iconBtnWarning]}>
+                        <MaterialCommunityIcons name={isRatingsUnlocked ? "lock-open" : "lock"} size={18} color={isRatingsUnlocked ? "#ff9500" : "#fff"} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => {
+                          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                          const next = !isSelectionMode;
+                          setIsSelectionMode(next);
+                          if (!next) setSelectedIds(new Set());
+                        }}
+                        style={[styles.iconBtn, isSelectionMode && styles.iconBtnActive]}
+                      >
+                        <MaterialCommunityIcons name={isSelectionMode ? "check-circle" : "check-circle-outline"} size={18} color={isSelectionMode ? "#00ffaa" : "#fff"} />
+                      </TouchableOpacity>
+                    </View>
                   </>
                 )}
               </View>
-            </View>
 
             <View style={styles.filterBarButtonWrapper}>
               <TouchableOpacity style={styles.sortFilterBtn} onPress={() => setShowFilterModal(true)}>
@@ -510,7 +525,8 @@ const styles = StyleSheet.create({
   iconBtnWarning: { borderColor: '#ff9500', backgroundColor: 'rgba(255,149,0,0.05)' },
   expandedSearch: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a1a1e', borderRadius: 12, paddingHorizontal: 12, height: 40 },
   searchField: { flex: 1, color: '#fff', fontSize: 13, fontWeight: '600' },
-  searchClose: { marginLeft: 8 },
+  searchClear: { paddingHorizontal: 4 },
+  searchClose: { marginLeft: 4 },
   filterBarButtonWrapper: { paddingHorizontal: 12, marginBottom: 12 },
   sortFilterBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: 'rgba(0,255,170,0.05)', borderWidth: 1, borderColor: 'rgba(0,255,170,0.1)', borderRadius: 12, paddingVertical: 10 },
   sortFilterText: { color: '#00ffaa', fontSize: 13, fontWeight: '800', letterSpacing: 1 },

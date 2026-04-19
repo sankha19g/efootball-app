@@ -56,6 +56,7 @@ import ScreenshotsScreen from './ScreenshotsScreen';
 import BadgesScreen from './BadgesScreen';
 import RanksScreen from './RanksScreen';
 import FormationsScreen from './FormationsScreen';
+import AppsScreen from './AppsScreen';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -268,7 +269,6 @@ const HomeScreen = ({ navigation }) => {
   const [showInactive, setShowInactive] = useState(false);
   const [infiniteScroll, setInfiniteScroll] = useState(false);
   const [missingDetailsFilter, setMissingDetailsFilter] = useState('All Players');
-  const [sortBy, setSortBy] = useState('rating');
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
   const [showPlayerDetails, setShowPlayerDetails] = useState(false);
@@ -296,14 +296,25 @@ const HomeScreen = ({ navigation }) => {
 
 
   const handleUpdatePlayer = useCallback(async (playerId, updates) => {
+    if (playerId === 'switch_player' && updates) {
+      // Create a fresh object to force re-render
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
+      setSelectedPlayer({ ...updates });
+      return;
+    }
     if (!user) return;
     try {
       await updatePlayer(user.uid, playerId, updates);
       setPlayers((prev) => prev.map((p) => p._id === playerId ? { ...p, ...updates } : p));
+      
+      // If updating the currently selected player, sync details modal
+      if (selectedPlayer?._id === playerId) {
+        setSelectedPlayer(prev => ({ ...prev, ...updates }));
+      }
     } catch (err) {
       console.error('Update error:', err);
     }
-  }, [user]);
+  }, [user, selectedPlayer, players]);
 
   const handleDeletePlayer = useCallback(async (playerId) => {
     if (!user) return;
@@ -687,10 +698,10 @@ const HomeScreen = ({ navigation }) => {
 
     // Sort
     result.sort((a, b) => {
-      if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
-      if (sortBy === 'goals') return (b.goals || 0) - (a.goals || 0);
-      if (sortBy === 'assists') return (b.assists || 0) - (a.assists || 0);
-      if (sortBy === 'dateAdded') return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      if (settings.sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
+      if (settings.sortBy === 'goals') return (b.goals || 0) - (a.goals || 0);
+      if (settings.sortBy === 'assists') return (b.assists || 0) - (a.assists || 0);
+      if (settings.sortBy === 'dateAdded') return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
       return 0;
     });
 
@@ -708,7 +719,7 @@ const HomeScreen = ({ navigation }) => {
     filterSkill,
     showInactive,
     missingDetailsFilter,
-    sortBy,
+    settings.sortBy,
     isFocused,
     heightFilterActive,
     heightRange,
@@ -1131,15 +1142,15 @@ const HomeScreen = ({ navigation }) => {
                   label="SORT BY"
                   options={['Overall Rating', 'Goals Scored', 'Assists', 'Date Added']}
                   value={
-                    sortBy === 'rating' ? 'Overall Rating' :
-                      sortBy === 'goals' ? 'Goals Scored' :
-                        sortBy === 'assists' ? 'Assists' : 'Date Added'
+                    settings.sortBy === 'rating' ? 'Overall Rating' :
+                      settings.sortBy === 'goals' ? 'Goals Scored' :
+                        settings.sortBy === 'assists' ? 'Assists' : 'Date Added'
                   }
                   onSelect={(val) => {
-                    if (val === 'Overall Rating') setSortBy('rating');
-                    else if (val === 'Goals Scored') setSortBy('goals');
-                    else if (val === 'Assists') setSortBy('assists');
-                    else setSortBy('dateAdded');
+                    const newSortBy = val === 'Overall Rating' ? 'rating' :
+                                    val === 'Goals Scored' ? 'goals' :
+                                    val === 'Assists' ? 'assists' : 'dateAdded';
+                    setSettings({ ...settings, sortBy: newSortBy });
                   }}
                 />
 
@@ -1213,6 +1224,7 @@ const HomeScreen = ({ navigation }) => {
                 {[
                   { icon: '📁', color: '#4488ff', bg: 'rgba(68,136,255,0.2)', title: 'ADD PLAYER FROM DB', subtitle: 'Mass recruitment', target: 'database' },
                   { icon: '✍️', color: '#ffaa00', bg: 'rgba(255,170,0,0.15)', title: 'MANUAL ENTRY', subtitle: 'Input stats manually', target: 'add' },
+                  { icon: '🚀', color: '#00D4FF', bg: 'rgba(0,212,255,0.15)', title: 'MY APPS', subtitle: 'Tools & Resources', target: 'apps' },
                   { icon: '📖', color: '#00FF88', bg: 'rgba(0,255,136,0.15)', title: 'EFOOTBALL ARTICLES', subtitle: 'Tactical Encyclopedia', target: 'brochure' },
                   { icon: '📸', color: '#aaaaaa', bg: 'rgba(170,170,170,0.15)', title: 'SCREENSHOTS', subtitle: 'View gallery', target: 'screenshots' },
                   { icon: '🔗', color: '#aaaaaa', bg: 'rgba(170,170,170,0.15)', title: 'QUICK LINKS', subtitle: 'External resources', target: 'links' },
@@ -1343,6 +1355,12 @@ const HomeScreen = ({ navigation }) => {
           user={user}
           players={players}
           onSaveSquad={() => setView('list')}
+        />
+      </Modal>
+
+      <Modal visible={view === 'apps'} animationType="slide">
+        <AppsScreen
+          onClose={() => setView('list')}
         />
       </Modal>
 

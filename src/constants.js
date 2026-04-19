@@ -45,6 +45,11 @@ export const PLAYER_SKILLS = [
 
 export const ALL_SKILLS = [...SPECIAL_SKILLS, ...PLAYER_SKILLS];
 
+export const WF_USAGE = ['Almost Never', 'Rarely', 'Occasionally', 'Regularly'];
+export const WF_ACCURACY = ['Low', 'Medium', 'High', 'Very High'];
+export const INJURY_RES = ['Low', 'Medium', 'High'];
+export const FORM = ['Inconsistent', 'Standard', 'Unwavering'];
+
 export const COLORS = {
   accent: '#00FF88',
   blue: '#00C3FF',

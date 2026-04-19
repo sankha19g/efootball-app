@@ -73,7 +73,7 @@ const AppItem = React.memo(({ app, index, onOpen, onDelete, onMove, isEditMode }
   </View>
 ));
 
-const AppsScreen = ({ navigation }) => {
+const AppsScreen = ({ navigation, onClose }) => {
   const { user } = useUser();
   const [userApps, setUserApps] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -160,7 +160,7 @@ const AppsScreen = ({ navigation }) => {
         </View>
         <TouchableOpacity
           style={styles.closeButton}
-          onPress={() => navigation?.goBack()}
+          onPress={() => onClose ? onClose() : navigation?.goBack()}
         >
           <MaterialCommunityIcons name="close" size={26} color="rgba(255,255,255,0.6)" />
         </TouchableOpacity>

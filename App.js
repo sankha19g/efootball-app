@@ -10,12 +10,15 @@ import HomeScreen from './src/screens/HomeScreen';
 import RanksScreen from './src/screens/RanksScreen';
 import AppsScreen from './src/screens/AppsScreen';
 import FormationsScreen from './src/screens/FormationsScreen';
+import CompareScreen from './src/screens/CompareScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import { COLORS } from './src/constants';
 import { subscribeToAuthChanges } from './src/services/authService';
 import { getPlayers } from './src/services/playerService';
 import { getSquads } from './src/services/squadService';
+import { getSettings, saveSettings } from './src/services/settingsService';
+import { getProfile } from './src/services/profileService';
 import { Animated } from 'react-native';
 
 const AnimatedIcon = ({ focused, children }) => {
@@ -40,22 +43,26 @@ const AnimatedIcon = ({ focused, children }) => {
 const Tab = createBottomTabNavigator();
 
 const UserContext = React.createContext();
+const SetUserContext = React.createContext();
 const PlayersContext = React.createContext();
 const SquadsContext = React.createContext();
 const SettingsContext = React.createContext();
+const CompareContext = React.createContext();
 
 export const useUser = () => React.useContext(UserContext);
 export const usePlayers = () => React.useContext(PlayersContext);
 export const useSquads = () => React.useContext(SquadsContext);
 export const useSettings = () => React.useContext(SettingsContext);
+export const useCompare = () => React.useContext(CompareContext);
 
-// Keep the old hook for compatibility but make it aggregate
 export const useAppContext = () => {
   const { user } = React.useContext(UserContext);
+  const setUser = React.useContext(SetUserContext);
   const { players, setPlayers } = React.useContext(PlayersContext);
   const { squads, setSquads } = React.useContext(SquadsContext);
   const { settings, setSettings } = React.useContext(SettingsContext);
-  return { user, settings, setSettings, players, setPlayers, squads, setSquads };
+  const { compareQueue, setCompareQueue } = React.useContext(CompareContext);
+  return { user, setUser, settings, setSettings, players, setPlayers, squads, setSquads, compareQueue, setCompareQueue };
 };
 
 export default function App() {
@@ -63,6 +70,7 @@ export default function App() {
   const [loading, setLoading] = React.useState(true);
   const [players, setPlayers] = React.useState([]);
   const [squads, setSquads] = React.useState([]);
+  const [compareQueue, setCompareQueue] = React.useState([]);
   const [settings, setSettings] = React.useState({
     cardSize: 'sm',
     showLabels: true,
@@ -72,32 +80,65 @@ export default function App() {
     showPlaystyle: true,
     showClubBadge: true,
     showNationBadge: true,
+    detailsShowLabels: true,
+    detailsShowClub: true,
+    detailsShowClubBadge: true,
+    detailsShowNationBadge: true,
+    detailsShowPlaystyle: true,
+    detailsShowRatings: true,
+    detailsShowRanking: true,
+    detailsShowBuilds: true,
+    detailsShowMedia: true,
+    detailsAutoSlide: true,
+    detailsShowEFHub: true,
     customStatSlots: ['matches', 'goals', 'assists'],
     highPerf: false,
     appLogo: null,
     theme: 'neon',
+    overlayHeight: 70,
+    overlayOpacity: 0.95,
+    blurIntensity: 0,
+    showOverlay: true,
+    sortBy: 'rating',
+    rankMinGames: '0',
   });
+  const settingsLoaded = React.useRef(false);
 
   React.useEffect(() => {
     const unsubAuth = subscribeToAuthChanges(async (u) => {
       try {
         if (u) {
-          setUser({
+          const [playerData, squadData, settingsData, profileData] = await Promise.all([
+            getPlayers(u.uid),
+            getSquads(u.uid),
+            getSettings(u.uid),
+            getProfile(u.uid)
+          ]);
+          setPlayers(playerData);
+          setSquads(squadData);
+          if (settingsData) {
+            setSettings(prev => ({ ...prev, ...settingsData }));
+          }
+          
+          const initialUser = {
             uid: u.uid,
             name: u.displayName || (u.email ? u.email.split('@')[0] : 'Guest User'),
             email: u.email || 'Anonymous',
             picture: u.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.displayName || u.email || 'Guest')}&background=random`,
-          });
-          const [playerData, squadData] = await Promise.all([
-            getPlayers(u.uid),
-            getSquads(u.uid)
-          ]);
-          setPlayers(playerData);
-          setSquads(squadData);
+            bannerUrl: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000&auto=format&fit=crop', // Default stadium banner
+          };
+
+          if (profileData) {
+            setUser({ ...initialUser, ...profileData });
+          } else {
+            setUser(initialUser);
+          }
+          settingsLoaded.current = true;
         } else {
           setUser(null);
           setPlayers([]);
           setSquads([]);
+          settingsLoaded.current = false;
         }
       } catch (err) {
         console.error("APP INIT ERROR:", err);
@@ -105,13 +146,23 @@ export default function App() {
         setLoading(false);
       }
     });
-    return () => unsubAuth();
   }, []);
+
+  // Save settings when they change
+  React.useEffect(() => {
+    if (user && user.uid && settingsLoaded.current) {
+      const timer = setTimeout(() => {
+        saveSettings(user.uid, settings);
+      }, 1000); // Debounce saves to Firestore
+      return () => clearTimeout(timer);
+    }
+  }, [settings, user?.uid]);
 
   const userValue = useMemo(() => ({ user }), [user]);
   const playersValue = useMemo(() => ({ players, setPlayers }), [players]);
   const squadsValue = useMemo(() => ({ squads, setSquads }), [squads]);
   const settingsValue = useMemo(() => ({ settings, setSettings }), [settings]);
+  const compareValue = useMemo(() => ({ compareQueue, setCompareQueue }), [compareQueue]);
 
   if (loading) return (
     <View style={{ flex: 1, backgroundColor: '#0a0a0c', justifyContent: 'center', alignItems: 'center' }}>
@@ -123,10 +174,12 @@ export default function App() {
 
   return (
     <UserContext.Provider value={userValue}>
-      <PlayersContext.Provider value={playersValue}>
-        <SquadsContext.Provider value={squadsValue}>
-          <SettingsContext.Provider value={settingsValue}>
-            <NavigationContainer>
+      <SetUserContext.Provider value={setUser}>
+        <PlayersContext.Provider value={playersValue}>
+          <SquadsContext.Provider value={squadsValue}>
+            <SettingsContext.Provider value={settingsValue}>
+              <CompareContext.Provider value={compareValue}>
+              <NavigationContainer>
               <StatusBar style="light" hidden={true} translucent />
               <Tab.Navigator
                 screenOptions={{
@@ -208,15 +261,15 @@ export default function App() {
                 />
 
                 <Tab.Screen
-                  name="Apps"
-                  component={AppsScreen}
+                  name="Compare"
+                  component={CompareScreen}
                   options={{
                     tabBarIcon: ({ focused }) => (
                       <View style={{ alignItems: 'center' }}>
                         <AnimatedIcon focused={focused}>
                           <MaterialCommunityIcons
-                            name="apps"
-                            size={30}
+                            name="scale-balance"
+                            size={28}
                             color={focused ? COLORS.accent : 'rgba(255,255,255,0.3)'}
                             style={focused ? {
                               textShadowColor: COLORS.accent,
@@ -295,9 +348,11 @@ export default function App() {
                 />
               </Tab.Navigator>
             </NavigationContainer>
-          </SettingsContext.Provider>
-        </SquadsContext.Provider>
-      </PlayersContext.Provider>
+              </CompareContext.Provider>
+            </SettingsContext.Provider>
+          </SquadsContext.Provider>
+        </PlayersContext.Provider>
+      </SetUserContext.Provider>
     </UserContext.Provider>
   );
 }

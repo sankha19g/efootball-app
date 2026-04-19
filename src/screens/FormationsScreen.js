@@ -15,6 +15,7 @@ import {
     Modal,
     PanResponder
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SQUAD_FORMATIONS, POSITIONS, CARD_TYPES, PLAYSTYLES, ALL_SKILLS } from '../constants';
@@ -29,6 +30,7 @@ const PITCH_HEIGHT = 450;
 import { useAppContext } from '../../App';
 
 const FormationsScreen = () => {
+    const navigation = useNavigation();
     const { user, players, setPlayers } = useAppContext();
     const [squads, setSquads] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -70,8 +72,8 @@ const FormationsScreen = () => {
             // Exclude players already in the squad (Starting XI or Subs)
             const squadPlayerIds = [
                 ...(currentSquad?.startingXI || []),
-                ...(currentSquad?.subs || [])
-            ].map(s => s.playerId).filter(id => id !== null);
+                ...(currentSquad?.subBench || [])
+            ].map(s => s?.playerId).filter(id => id !== null);
 
             if (squadPlayerIds.includes(p._id)) return false;
 
@@ -499,8 +501,18 @@ const FormationsScreen = () => {
         return (
             <SafeAreaView style={styles.container}>
                 <LinearGradient colors={['#111116', '#0a0a0c']} style={styles.header}>
-                    <Text style={styles.headerTitle}>TACTICAL HUB</Text>
-                    <Text style={styles.headerSub}>PREVIEW & MANAGE YOUR SQUADS</Text>
+                    <View style={styles.headerTopRow}>
+                        <View>
+                            <Text style={styles.headerTitle}>TACTICAL HUB</Text>
+                            <Text style={styles.headerSub}>PREVIEW & MANAGE YOUR SQUADS</Text>
+                        </View>
+                        <TouchableOpacity 
+                            style={styles.hubCloseBtn}
+                            onPress={() => navigation.navigate('Squad')}
+                        >
+                            <MaterialCommunityIcons name="close" size={24} color={COLORS.accent} />
+                        </TouchableOpacity>
+                    </View>
                 </LinearGradient>
 
                 {loading ? (
@@ -1134,8 +1146,24 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#0a0a0c' },
     center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     header: { paddingBottom: 15, paddingTop: 10 },
-    headerTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15, paddingVertical: 10 },
-    headerMainTitle: { color: '#fff', fontSize: 13, fontWeight: '900', letterSpacing: 2, marginBottom: 2 },
+    headerTopRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingBottom: 10,
+    },
+    hubCloseBtn: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+    },
+    headerTitle: { color: '#fff', fontSize: 13, fontWeight: '900', letterSpacing: 2, marginBottom: 2 },
     headerTacticSub: { color: COLORS.accent, fontSize: 9, fontWeight: '900', letterSpacing: 1.5, textTransform: 'uppercase' },
     backBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.05)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
     backIcon: { color: COLORS.accent, fontSize: 24 },

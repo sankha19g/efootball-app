@@ -93,7 +93,7 @@ const HighlightText = ({ text, query, highlightStyle }) => {
 };
 
 const RanksScreen = ({ navigation, onClose }) => {
-  const { players, user } = useAppContext();
+  const { players, user, settings, setSettings } = useAppContext();
   const [activeTab, setActiveTab] = useState('TOTALS');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -187,6 +187,12 @@ const RanksScreen = ({ navigation, onClose }) => {
       });
     }
 
+    // Minimum Games Filter
+    const minGamesVal = parseInt(settings.rankMinGames || 0);
+    if (!isNaN(minGamesVal) && minGamesVal > 0) {
+      filtered = filtered.filter(p => (p.matches || 0) >= minGamesVal);
+    }
+
     const activePlayers = filtered.filter(p => (p.matches || 0) > 0);
     const getSorted = (fn) => [...filtered].sort((a, b) => (fn(b) || 0) - (fn(a) || 0));
     const getSortedRatio = (fn) => [...activePlayers].sort((a, b) => (fn(b) || 0) - (fn(a) || 0));
@@ -204,7 +210,7 @@ const RanksScreen = ({ navigation, onClose }) => {
         { id: 'gapg', title: 'CONTRIBUTION / GM', players: getSortedRatio(p => ((p.goals || 0) + (p.assists || 0)) / p.matches), valueKey: 'totalGA', color: '#FF4499', isRatio: true, suffix: 'AVG' },
       ]
     };
-  }, [players, rankFilterPos, rankFilterCardType, rankFilterClub, rankFilterNationality, rankFilterPlaystyle, rankFilterSkill, rankIncludeSecondary]);
+  }, [players, rankFilterPos, rankFilterCardType, rankFilterClub, rankFilterNationality, rankFilterPlaystyle, rankFilterSkill, rankIncludeSecondary, settings.rankMinGames]);
 
   const currentList = activeTab === 'TOTALS' ? categories.totals : categories.ratios;
 
@@ -284,6 +290,7 @@ const RanksScreen = ({ navigation, onClose }) => {
                 setRankFilterPlaystyle(['All']);
                 setRankFilterSkill('All');
                 setRankIncludeSecondary(false);
+                setSettings({ ...settings, rankMinGames: '0' });
               }}>
                 <Text style={styles.clearText}>RESET</Text>
               </TouchableOpacity>
@@ -362,6 +369,20 @@ const RanksScreen = ({ navigation, onClose }) => {
                   />
                 </View>
                 <View style={styles.filterCol}>
+                  <Text style={styles.inputLabel}>MINIMUM GAMES</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    keyboardType="numeric"
+                    placeholder="e.g. 10"
+                    placeholderTextColor="rgba(255,255,255,0.3)"
+                    value={settings.rankMinGames}
+                    onChangeText={(val) => setSettings({ ...settings, rankMinGames: val })}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.filterRow}>
+                <View style={[styles.filterCol, { flex: 0, width: '50%' }]}>
                   <Dropdown
                     label="SKILL"
                     options={['All', 'Any Special Skill', ...ALL_SKILLS]}
