@@ -25,6 +25,7 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
   const sizeMap = ['mini', 'xs', 'sm', 'md', 'lg'];
 
   const demoPlayer = {
+    id: '105553116301513',
     name: "L. MESSI",
     position: "RW",
     rating: 102,
@@ -35,7 +36,8 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
     goals: 850,
     assists: 380,
     matches: 1050,
-    image: "https://limitic.com/wp-content/uploads/2023/09/messi.png"
+    image: "https://limitic.com/wp-content/uploads/2023/09/messi.png",
+    image2: "https://limitic.com/wp-content/uploads/2023/09/messi.png",
   };
 
   const toggleSetting = (key) => {
@@ -159,7 +161,8 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
         { id: 'showClubBadge', label: 'Club Badge' },
         { id: 'showNationBadge', label: 'Country Badge' },
         { id: 'showPlaystyle', label: 'Player Playstyle' },
-        { id: 'showRatings', label: 'Player Rating' }
+        { id: 'showRatings', label: 'Player Rating' },
+        { id: 'cardRounded', label: 'Rounded Corners' }
       ].map(item => (
         <TouchableOpacity
           key={item.id}
@@ -175,6 +178,36 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
           />
         </TouchableOpacity>
       ))}
+
+      <View style={styles.sectionDivider} />
+
+      <Text style={styles.tabSubheader}>CARD IMAGE SOURCE</Text>
+      <View style={styles.gridBox}>
+        <Text style={styles.slotTip}>Choose which image source to display for player cards.</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.statChipScroll}
+        >
+          {[1, 2, 3].map(source => (
+            <TouchableOpacity
+              key={source}
+              onPress={() => setSettings(prev => ({ ...prev, imageSource: source }))}
+              style={[
+                styles.statChip,
+                (settings.imageSource || 1) === source && styles.statChipActive
+              ]}
+            >
+              <Text style={[
+                styles.statChipText,
+                (settings.imageSource || 1) === source && { color: '#000' }
+              ]}>
+                SOURCE {source}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       <View style={styles.sectionDivider} />
 
@@ -332,7 +365,8 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
         { id: 'detailsShowClubBadge', label: 'Club Badge' },
         { id: 'detailsShowNationBadge', label: 'Country Badge' },
         { id: 'detailsShowPlaystyle', label: 'Player Playstyle' },
-        { id: 'detailsShowRatings', label: 'Player Rating' }
+        { id: 'detailsShowRatings', label: 'Player Rating' },
+        { id: 'cardRounded', label: 'Rounded Corners' }
       ].map(item => (
         <TouchableOpacity
           key={item.id}
@@ -348,6 +382,36 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
           />
         </TouchableOpacity>
       ))}
+
+      <View style={styles.sectionDivider} />
+
+      <Text style={styles.tabSubheader}>CARD IMAGE SOURCE</Text>
+      <View style={styles.gridBox}>
+        <Text style={styles.slotTip}>Choose which image source to display for player cards.</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.statChipScroll}
+        >
+          {[1, 2, 3].map(source => (
+            <TouchableOpacity
+              key={source}
+              onPress={() => setSettings(prev => ({ ...prev, imageSource: source }))}
+              style={[
+                styles.statChip,
+                (settings.imageSource || 1) === source && styles.statChipActive
+              ]}
+            >
+              <Text style={[
+                styles.statChipText,
+                (settings.imageSource || 1) === source && { color: '#000' }
+              ]}>
+                SOURCE {source}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
     </View>
   );
 

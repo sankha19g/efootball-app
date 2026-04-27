@@ -30,6 +30,8 @@ const PlayerCard = memo(({ player, isSelectionMode, isSelected, onToggleSelect, 
     blurIntensity = 0,
     showOverlay = true,
     cardSize = 'normal',
+    imageSource = 1,
+    cardRounded = true,
   } = settings;
 
   const isMini = cardSize === 'mini';
@@ -45,18 +47,18 @@ const PlayerCard = memo(({ player, isSelectionMode, isSelected, onToggleSelect, 
       onPress={() => isSelectionMode ? onToggleSelect(player._id) : onPress?.(player)}
       onLongPress={() => onToggleSelect?.(player._id)}
       activeOpacity={0.85}
-      style={[styles.cardWrapper, isSelected && styles.cardSelected, isMini && { marginBottom: 0 }]}>
+      style={[styles.cardWrapper, isSelected && styles.cardSelected, isMini && { marginBottom: 0 }, !cardRounded && { borderRadius: 0 }]}>
       <LinearGradient
         colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.card}>
+        style={[styles.card, !cardRounded && { borderRadius: 0 }]}>
 
         {/* Player Image */}
         <View style={styles.imageContainer}>
-          {getPlayerBadge(player, 'player') ? (
+          {getPlayerBadge(player, 'player', imageSource) ? (
             <Image
-              source={{ uri: getPlayerBadge(player, 'player') }}
+              source={{ uri: getPlayerBadge(player, 'player', imageSource) }}
               style={styles.playerImage}
               resizeMode="cover"
             />
@@ -87,7 +89,7 @@ const PlayerCard = memo(({ player, isSelectionMode, isSelected, onToggleSelect, 
 
         {/* HUD Top-Left: Rating & Position */}
         {showRatings && (
-          <View style={[styles.ratingHud, isMini && { paddingHorizontal: 4, paddingVertical: 2, minWidth: 25 }]}>
+          <View style={[styles.ratingHud, isMini && { paddingHorizontal: 4, paddingVertical: 2, minWidth: 25 }, !cardRounded && { borderBottomRightRadius: 0 }]}>
             <Text style={[styles.ratingText, isMini && { fontSize: 10, lineHeight: 12 }]}>{player.rating || 0}</Text>
             <Text style={[styles.positionText, isMini && { fontSize: 6 }]}>{player.position}</Text>
           </View>

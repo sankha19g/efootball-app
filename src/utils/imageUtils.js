@@ -2,7 +2,7 @@
  * Utility to extract the most reliable image/logo/badge URL from a player object.
  * Handles multiple field name variations and protocol issues (e.g. // instead of https://).
  */
-export const getPlayerBadge = (player, type = 'club') => {
+export const getPlayerBadge = (player, type = 'club', imageSource = 1) => {
   if (!player) return '';
 
   const urls = [];
@@ -61,7 +61,18 @@ export const getPlayerBadge = (player, type = 'club') => {
       player.logos?.league_badge
     );
   } else {
-    // Generic player photo extraction
+    // Generic player photo extraction based on source selection
+    if (imageSource === 2) {
+      urls.push(player.image2, player.player_image2, player.playerImage2);
+    } else if (imageSource === 3) {
+      const pid = player.id || player.playerId || player.pesdb_id || (player._id && !player._id.includes('_') ? player._id : null);
+      if (pid) {
+        urls.push(`https://efimg.com/efootballhub22/images/player_cards/${pid}_l.png`);
+      }
+      urls.push(player.image3, player.player_image3, player.playerImage3);
+    }
+    
+    // Always fallback to default source 1 fields if selection doesn't yield anything
     urls.push(
       player.image,
       player.photo,

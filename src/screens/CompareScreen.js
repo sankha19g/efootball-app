@@ -272,7 +272,7 @@ const CompareScreen = () => {
                         <View style={styles.cardContainer}>
                           <PlayerCard 
                             player={player} 
-                            settings={{...settings, cardSize: 'mini', showOverlay: true, overlayHeight: 40}} 
+                            settings={{...settings, cardSize: 'mini', showOverlay: true, overlayHeight: 40, cardRounded: false}} 
                             showName={false}
                           />
                         </View>
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
   
   cardFrame: { 
     padding: 2, 
-    borderRadius: 14, 
+    borderRadius: 0, 
     width: 104, 
     height: 134, 
     justifyContent: 'center', 
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5
   },
-  cardContainer: { width: 100, height: 130, borderRadius: 10, overflow: 'hidden', backgroundColor: '#000' },
+  cardContainer: { width: 100, height: 130, borderRadius: 0, overflow: 'hidden', backgroundColor: '#000' },
   
   colName: { color: '#fff', fontSize: 9, fontWeight: '900', marginTop: 8, textAlign: 'center' },
   removeBtn: { position: 'absolute', top: 2, right: 0, zIndex: 10, backgroundColor: '#ff4444', borderRadius: 8, padding: 3, elevation: 10 },

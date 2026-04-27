@@ -67,7 +67,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { useAppContext } from '../../App';
 import { PanResponder, Animated } from 'react-native';
 
-const HeightRangeSlider = ({ range, onRangeChange, minBound = 150, maxBound = 220 }) => {
+const RangeSlider = ({ label, range, onRangeChange, minBound = 150, maxBound = 220 }) => {
   const [trackWidth, setTrackWidth] = useState(0);
   const totalSpan = maxBound - minBound;
 
@@ -121,7 +121,7 @@ const HeightRangeSlider = ({ range, onRangeChange, minBound = 150, maxBound = 22
 
   return (
     <View style={sliderStyles.container}>
-      <Text style={sliderStyles.title}>Height (cm)</Text>
+      <Text style={sliderStyles.title}>{label}</Text>
       <View style={sliderStyles.row}>
         
         {/* Min Controls */}
@@ -277,6 +277,10 @@ const HomeScreen = ({ navigation }) => {
   const [showSliderPopup, setShowSliderPopup] = useState(false);
   const [heightFilterActive, setHeightFilterActive] = useState(false);
   const [heightRange, setHeightRange] = useState([150, 210]);
+  const [filterMinAge, setFilterMinAge] = useState('');
+  const [filterMaxAge, setFilterMaxAge] = useState('');
+  const [ageRange, setAgeRange] = useState([15, 45]);
+  const [ageFilterActive, setAgeFilterActive] = useState(false);
 
   // Selection
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -696,6 +700,33 @@ const HomeScreen = ({ navigation }) => {
       });
     }
 
+    // Age Range Filter
+    if (ageFilterActive) {
+      result = result.filter(p => {
+        if (!p.age) return false;
+        const a = parseInt(p.age);
+        return !isNaN(a) && a >= ageRange[0] && a <= ageRange[1];
+      });
+    }
+
+    // Min/Max Age Input Filters
+    if (filterMinAge) {
+      result = result.filter(p => {
+        if (!p.age) return false;
+        const a = parseInt(p.age);
+        const minA = parseInt(filterMinAge);
+        return !isNaN(a) && !isNaN(minA) && a >= minA;
+      });
+    }
+    if (filterMaxAge) {
+      result = result.filter(p => {
+        if (!p.age) return false;
+        const a = parseInt(p.age);
+        const maxA = parseInt(filterMaxAge);
+        return !isNaN(a) && !isNaN(maxA) && a <= maxA;
+      });
+    }
+
     // Sort
     result.sort((a, b) => {
       if (settings.sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
@@ -729,6 +760,10 @@ const HomeScreen = ({ navigation }) => {
     filterWeakFootAccuracy,
     filterInjuryResistance,
     filterForm,
+    ageFilterActive,
+    ageRange,
+    filterMinAge,
+    filterMaxAge,
   ]);
 
   if (!user && !loading) {
@@ -918,11 +953,29 @@ const HomeScreen = ({ navigation }) => {
                 <Text style={styles.closeOverlayText}>✕</Text>
               </TouchableOpacity>
             </View>
-            <HeightRangeSlider 
+            <RangeSlider 
+              label="Height (cm)"
               range={heightRange} 
               onRangeChange={setHeightRange} 
               minBound={150} 
               maxBound={220} 
+            />
+          </View>
+        )}
+
+        {ageFilterActive && (
+          <View style={styles.heightOverlay}>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: -10, zIndex: 11 }}>
+              <TouchableOpacity onPress={() => setAgeFilterActive(false)} style={{ padding: 5 }}>
+                <Text style={styles.closeOverlayText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <RangeSlider 
+              label="Age (Years)"
+              range={ageRange} 
+              onRangeChange={setAgeRange} 
+              minBound={15} 
+              maxBound={45} 
             />
           </View>
         )}
@@ -973,11 +1026,16 @@ const HomeScreen = ({ navigation }) => {
                   setFilterMinHeight('');
                   setFilterWeakFootUsage('All');
                   setFilterWeakFootAccuracy('All');
-                  setFilterInjuryResistance('All');
                   setFilterForm('All');
                   setMissingDetailsFilter('All Players');
                   setShowInactive(false);
-                  setSortBy('rating');
+                  setSettings({ ...settings, sortBy: 'rating' });
+                  setFilterMinAge('');
+                  setFilterMaxAge('');
+                  setAgeRange([15, 45]);
+                  setAgeFilterActive(false);
+                  setHeightFilterActive(false);
+                  setHeightRange([150, 210]);
                 }}>
                   <Text style={styles.clearAllText}>CLEAR ALL</Text>
                 </TouchableOpacity>
@@ -1094,6 +1152,31 @@ const HomeScreen = ({ navigation }) => {
                       placeholderTextColor="rgba(255,255,255,0.2)"
                       value={filterMinHeight}
                       onChangeText={setFilterMinHeight}
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.modalTwoCol}>
+                  <View style={styles.modalCol}>
+                    <Text style={styles.modalSectionLabelSmall}>MIN AGE</Text>
+                    <TextInput
+                      keyboardType="numeric"
+                      style={styles.filterInput}
+                      placeholder="e.g. 18"
+                      placeholderTextColor="rgba(255,255,255,0.2)"
+                      value={filterMinAge}
+                      onChangeText={setFilterMinAge}
+                    />
+                  </View>
+                  <View style={styles.modalCol}>
+                    <Text style={styles.modalSectionLabelSmall}>MAX AGE</Text>
+                    <TextInput
+                      keyboardType="numeric"
+                      style={styles.filterInput}
+                      placeholder="e.g. 35"
+                      placeholderTextColor="rgba(255,255,255,0.2)"
+                      value={filterMaxAge}
+                      onChangeText={setFilterMaxAge}
                     />
                   </View>
                 </View>
@@ -1419,11 +1502,17 @@ const HomeScreen = ({ navigation }) => {
                 <Text style={[styles.hubBtnText, { color: 'rgba(255,255,255,0.2)' }]}>WEIGHT SLIDER</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.hubBtnDisabled}>
+              <TouchableOpacity 
+                style={styles.hubBtn}
+                onPress={() => {
+                  setShowSliderPopup(false);
+                  setAgeFilterActive(true);
+                }}
+              >
                 <View style={styles.hubIconBox}>
-                  <MaterialCommunityIcons name="cake-variant" size={24} color="rgba(255,255,255,0.2)" />
+                  <MaterialCommunityIcons name="cake-variant" size={24} color={COLORS.accent} />
                 </View>
-                <Text style={[styles.hubBtnText, { color: 'rgba(255,255,255,0.2)' }]}>AGE SLIDER</Text>
+                <Text style={styles.hubBtnText}>AGE SLIDER</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.hubBtnDisabled}>

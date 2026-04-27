@@ -33,15 +33,22 @@ import ProgressionIcon from './ProgressionIcon';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-
-
+// Helper to normalize skill names for robust comparison
+const normalizeSkillName = (name) => {
+  if (!name) return '';
+  return name.toString()
+    .toLowerCase()
+    .replace(/^\*/, '') // Remove special skill indicator if at start
+    .replace(/[^a-z0-9]/g, '') // Remove all non-alphanumeric chars (spaces, hyphens, etc)
+    .trim();
+};
 
 // 1. Context-Aware Skill Picker
 const SkillPickerPopup = ({ visible, onClose, onSelect, type = 'core', currentSkills = [] }) => {
   const [search, setSearch] = useState('');
 
   const availableSkills = (type === 'additional' ? PLAYER_SKILLS : ALL_SKILLS)
-    .filter(s => !currentSkills.includes(s)) // Prevent duplicates
+    .filter(s => !currentSkills.includes(normalizeSkillName(s))) // Prevent duplicates using normalized comparison
     .filter(s => s.toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -98,7 +105,10 @@ const SkillSelectionModal = ({ visible, onClose, coreSkills, additionalSkills, o
     onUpdate(skill, pickerType, activeSlot);
   };
 
-  const allOwnedSkills = [...coreSkills, ...additionalSkills.filter(Boolean)];
+  const allOwnedSkills = [
+    ...coreSkills.map(normalizeSkillName),
+    ...additionalSkills.filter(Boolean).map(normalizeSkillName)
+  ];
 
   return (
     <Modal visible={visible} animationType="fade" transparent={true}>
@@ -792,7 +802,7 @@ const MediaView = ({ media, onAddMedia, onDeleteMedia, onToggleAspect }) => {
   );
 };
 
-const OtherVersionsView = ({ currentPlayer, allPlayers, onSelectPlayer }) => {
+const OtherVersionsView = ({ currentPlayer, allPlayers, onSelectPlayer, settings }) => {
   const { setCompareQueue } = useAppContext();
   const versions = useMemo(() => {
     if (!currentPlayer || !allPlayers) return [];
@@ -880,7 +890,11 @@ const OtherVersionsView = ({ currentPlayer, allPlayers, onSelectPlayer }) => {
             return (
               <TouchableOpacity 
                 key={p._id || idx} 
-                style={[styles.versionCard, isCurrent && styles.versionCardCurrent]}
+                style={[
+                  styles.versionCard, 
+                  isCurrent && styles.versionCardCurrent,
+                  { borderRadius: 0 }
+                ]}
                 onPress={() => onSelectPlayer(p)}
               >
                 <View style={styles.versionCardTop}>
@@ -894,13 +908,15 @@ const OtherVersionsView = ({ currentPlayer, allPlayers, onSelectPlayer }) => {
                     onPress={onSelectPlayer}
                     isSelectionMode={false}
                     settings={{ 
+                      ...settings,
                       cardSize: 'mini', 
                       showOverlay: true,
                       showRatings: true,
                       showName: true,
                       showStats: false,
                       showClub: false,
-                      showPlaystyle: false
+                      showPlaystyle: false,
+                      cardRounded: false
                     }} 
                   />
                 </View>
@@ -1547,7 +1563,7 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
               <View style={styles.section}>
                 <View style={styles.sectionHeaderRow}>
                   <Text style={styles.sectionTitle}>PLAYER SKILLS</Text>
-                  <TouchableOpacity style={styles.miniEditBtn} onPress={() => { setShowConfirm(true); setPickerType('core'); }}><Text style={styles.miniEditIcon}>✏️</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.miniEditBtn} onPress={() => { setShowConfirm(true); setPickerType('skill'); }}><Text style={styles.miniEditIcon}>✏️</Text></TouchableOpacity>
                 </View>
                 <View style={styles.skillsWrapper}>
                   {coreSkills.map((skill, index) => {
@@ -1718,6 +1734,7 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
               <OtherVersionsView 
                 currentPlayer={player} 
                 allPlayers={players} 
+                settings={settings}
                 onSelectPlayer={(p) => {
                   // Switch to the selected player version
                   onUpdate?.('switch_player', p); 
@@ -1739,7 +1756,7 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
           />
         )}
 
-        {showPicker && pickerType === 'skill' && (
+        {showPicker && (pickerType === 'skill' || pickerType === 'core') && (
           <SkillSelectionModal
             visible={true}
             coreSkills={coreSkills}
@@ -1828,7 +1845,7 @@ const styles = StyleSheet.create({
   versionsHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   versionBadge: { backgroundColor: 'rgba(0, 255, 136, 0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   versionBadgeText: { color: COLORS.accent, fontSize: 10, fontWeight: '900' },
-  versionCard: { width: '32%', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', marginBottom: 8 },
+  versionCard: { width: '32%', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 0, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', marginBottom: 8 },
   versionCardCurrent: { borderColor: COLORS.accent, backgroundColor: 'rgba(0, 255, 136, 0.05)', borderWidth: 1.5 },
   currentBadge: { position: 'absolute', top: 5, right: 5, backgroundColor: COLORS.accent, paddingHorizontal: 5, paddingVertical: 2, borderRadius: 4, zIndex: 100 },
   currentBadgeText: { color: '#000', fontSize: 6, fontWeight: '900' },

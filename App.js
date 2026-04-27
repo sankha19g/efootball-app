@@ -101,6 +101,7 @@ export default function App() {
     showOverlay: true,
     sortBy: 'rating',
     rankMinGames: '0',
+    cardRounded: true,
   });
   const settingsLoaded = React.useRef(false);
 

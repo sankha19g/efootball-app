@@ -26,7 +26,7 @@ const FORM_FIELDS = [
   { key: 'additionalPositions', label: 'Secondary Positions', placeholder: 'e.g. AMF, LWF' },
   { key: 'club', label: 'Club', placeholder: 'e.g. Inter Miami' },
   { key: 'nationality', label: 'Nationality', placeholder: 'e.g. Argentina' },
-  { key: 'rating', label: 'Overall Rating', placeholder: '0-99', keyboardType: 'numeric' },
+  { key: 'rating', label: 'Overall Rating', placeholder: '0-110', keyboardType: 'numeric' },
   { key: 'matches', label: 'Matches', placeholder: '0', keyboardType: 'numeric' },
   { key: 'goals', label: 'Goals', placeholder: '0', keyboardType: 'numeric' },
   { key: 'assists', label: 'Assists', placeholder: '0', keyboardType: 'numeric' },
@@ -150,8 +150,8 @@ const AddPlayerScreen = ({ userId, initialData, onSave, onClose }) => {
   const validate = () => {
     const errs = {};
     if (!form.name || !String(form.name).trim()) errs.name = 'Player name is required';
-    if (form.rating && (isNaN(form.rating) || Number(form.rating) < 0 || Number(form.rating) > 99))
-      errs.rating = 'Rating must be 0-99';
+    if (form.rating && (isNaN(form.rating) || Number(form.rating) < 0 || Number(form.rating) > 110))
+      errs.rating = 'Rating must be 0-110';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
