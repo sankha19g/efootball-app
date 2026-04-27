@@ -45,6 +45,7 @@ export const PLAYER_SKILLS = [
 
 export const ALL_SKILLS = [...SPECIAL_SKILLS, ...PLAYER_SKILLS];
 
+export const PREFERRED_FOOT = ['Right', 'Left'];
 export const WF_USAGE = ['Almost Never', 'Rarely', 'Occasionally', 'Regularly'];
 export const WF_ACCURACY = ['Low', 'Medium', 'High', 'Very High'];
 export const INJURY_RES = ['Low', 'Medium', 'High'];

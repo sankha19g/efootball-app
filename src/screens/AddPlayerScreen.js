@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, POSITIONS, PLAYSTYLES, CARD_TYPES, WF_USAGE, WF_ACCURACY, INJURY_RES, FORM } from '../constants';
+import { COLORS, POSITIONS, PLAYSTYLES, CARD_TYPES, PREFERRED_FOOT, WF_USAGE, WF_ACCURACY, INJURY_RES, FORM } from '../constants';
 import { addPlayer, uploadBase64Image } from '../services/playerService';
 
 const FORM_FIELDS = [
@@ -82,7 +82,7 @@ const AddPlayerScreen = ({ userId, initialData, onSave, onClose }) => {
   const [form, setForm] = useState(() => {
     if (!initialData) return {
       name: '', club: '', nationality: '', rating: '', cardType: 'Standard',
-      position: 'CF', playstyle: 'None', matches: '0', goals: '0', assists: '0',
+      position: 'CF', playstyle: 'None', preferredFoot: 'Right', matches: '0', goals: '0', assists: '0',
       image: null, leagueImage: null, bannerImage: null,
       additionalPositions: [], additionalSkills: ['', '', '', '', ''],
       weakFootUsage: 'Occasionally', weakFootAccuracy: 'Medium', injuryResistance: 'Medium', form: 'Standard',
@@ -105,6 +105,7 @@ const AddPlayerScreen = ({ userId, initialData, onSave, onClose }) => {
       matches: String(initialData.matches || '0'),
       goals: String(initialData.goals || '0'),
       assists: String(initialData.assists || '0'),
+      preferredFoot: initialData.preferredFoot || initialData.strongFoot || initialData.foot || initialData.strong_foot || initialData.strongfoot || initialData.Foot || initialData['Preferred Foot'] || initialData.preferred_foot || 'Right',
     };
   });
   const [uploading, setUploading] = useState(false);
@@ -256,6 +257,13 @@ const AddPlayerScreen = ({ userId, initialData, onSave, onClose }) => {
             value={form.playstyle}
             options={PLAYSTYLES}
             onSelect={(val) => updateField('playstyle', val)}
+          />
+
+          <DropdownField
+            label="Preferred Foot"
+            value={form.preferredFoot}
+            options={PREFERRED_FOOT}
+            onSelect={(val) => updateField('preferredFoot', val)}
           />
 
           <View style={styles.row}>

@@ -1478,29 +1478,6 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
                       <CompactInfo icon="🆔" text={player.pesdb_id || player.playerId} />
                       <CompactInfo icon="👤" text={`${player.age || '--'} • ${player.strongFoot || player.foot || player.strong_foot || player.strongfoot || '--'} • ${player.height || '--'}CM`} />
                     </View>
-
-                    {settings.detailsShowEFHub && (
-                      <TouchableOpacity
-                        style={styles.efhubBtn}
-                        onPress={() => {
-                          const id = player.playerId || player.pesdb_id;
-                          if (id) {
-                            Linking.openURL(`https://efhub.com/players/${id}`);
-                          } else {
-                            Alert.alert('No ID', 'This player does not have a valid ID for EFHub.');
-                          }
-                        }}
-                      >
-                        <View style={styles.efhubSquare}>
-                          <Image
-                            source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-u_c9SzJg_Kfn9aRGf2y5-0drkCDmurWmQQ&s' }}
-                            style={{ width: 28, height: 28, borderRadius: 8 }}
-                            resizeMode="contain"
-                          />
-                        </View>
-                        <Text style={styles.efhubText}>EFHUB</Text>
-                      </TouchableOpacity>
-                    )}
                   </View>
                   {player.cardType && <Text style={styles.cardTypeText}>{player.cardType.toUpperCase()}</Text>}
                 </View>
@@ -1685,6 +1662,70 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
                           color="rgba(255,255,255,0.5)"
                         />
                       </View>
+                    </View>
+
+                    <View style={{ marginTop: 25 }}>
+                      <Text style={[styles.additionalTitle, { color: 'rgba(255,255,255,0.2)', marginBottom: 12 }]}>LINKS</Text>
+                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                          {settings.detailsShowEFHub && (
+                            <TouchableOpacity
+                              style={[styles.efhubBtn, { flex: 1, flexDirection: 'row', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', borderRadius: 25, paddingHorizontal: 10, paddingVertical: 12 }]}
+                              onPress={() => {
+                                const id = player.playerId || player.pesdb_id;
+                                if (id) {
+                                  Linking.openURL(`https://efhub.com/players/${id}`);
+                                } else {
+                                  Alert.alert('No ID', 'This player does not have a valid ID for EFHub.');
+                                }
+                              }}
+                            >
+                              <Image
+                                source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-u_c9SzJg_Kfn9aRGf2y5-0drkCDmurWmQQ&s' }}
+                                style={{ width: 18, height: 18, borderRadius: 5, marginRight: 6 }}
+                                resizeMode="contain"
+                              />
+                              <Text style={[styles.efhubText, { fontSize: 8 }]}>EFHUB</Text>
+                            </TouchableOpacity>
+                          )}
+
+                          <TouchableOpacity
+                            style={[styles.efhubBtn, { flex: 1, flexDirection: 'row', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', borderRadius: 25, paddingHorizontal: 10, paddingVertical: 12 }]}
+                            onPress={() => {
+                              const id = player.pesdb_id || player.playerId;
+                              if (id) {
+                                Linking.openURL(`https://pesdb.net/efootball/?id=${id}`);
+                              } else {
+                                Alert.alert('No ID', 'This player does not have a valid ID for PESDB.');
+                              }
+                            }}
+                          >
+                            <Image
+                              source={{ uri: 'https://pesdb.net/efootball/images/pesdb2026_logo.png' }}
+                              style={{ width: 18, height: 18, borderRadius: 5, marginRight: 6 }}
+                              resizeMode="contain"
+                            />
+                            <Text style={[styles.efhubText, { fontSize: 8 }]}>PESDB</Text>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity
+                            style={[styles.efhubBtn, { flex: 1, flexDirection: 'row', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', borderRadius: 25, paddingHorizontal: 10, paddingVertical: 12 }]}
+                            onPress={() => {
+                              const id = player.playerId || player.pesdb_id;
+                              if (id) {
+                                Linking.openURL(`https://efootball-world.com/player/${id}`);
+                              } else {
+                                Alert.alert('No ID', 'This player does not have a valid ID for EF World.');
+                              }
+                            }}
+                          >
+                            <Image
+                              source={{ uri: 'https://efootball-world.com/favicon.png' }}
+                              style={{ width: 18, height: 18, borderRadius: 5, marginRight: 6 }}
+                              resizeMode="contain"
+                            />
+                            <Text style={[styles.efhubText, { fontSize: 8 }]}>EF WORLD</Text>
+                          </TouchableOpacity>
+                        </View>
                     </View>
                   </View>
                 </View>

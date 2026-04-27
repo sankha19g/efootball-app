@@ -200,7 +200,29 @@ const ProfileStatsScreen = ({ players = [], onClose }) => {
         positions: formatStats(positions),
         playstyles: formatStats(playstyles),
         cardTypes: formatStats(cardTypes)
-      }
+      },
+      footStats: players.reduce((acc, p) => {
+        // Handle common variations in naming from scraping or legacy data
+        const footVal = String(
+          p.preferredFoot || p.strongFoot || p.foot || p.strong_foot || p.strongfoot ||
+          p.Foot || p['Preferred Foot'] || p.preferred_foot || 'Right'
+        ).toLowerCase();
+        const foot = (footVal.startsWith('l')) ? 'Left' : 'Right';
+        
+        const m = Number(p.matches || 0);
+        const g = Number(p.goals || 0);
+        const a = Number(p.assists || 0);
+        
+        acc[foot].cards += 1;
+        acc[foot].matches += m;
+        acc[foot].goals += g;
+        acc[foot].assists += a;
+        acc[foot].ga += (g + a);
+        return acc;
+      }, { 
+        Left: { cards: 0, matches: 0, goals: 0, assists: 0, ga: 0 }, 
+        Right: { cards: 0, matches: 0, goals: 0, assists: 0, ga: 0 }
+      })
     };
   }, [players]);
 
@@ -253,6 +275,9 @@ const ProfileStatsScreen = ({ players = [], onClose }) => {
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setActiveTab('duplicates')} style={[styles.tab, activeTab === 'duplicates' && styles.tabActive]}>
             <Text style={[styles.tabText, activeTab === 'duplicates' && styles.tabTextActive]}>DUPLICATES</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setActiveTab('foot')} style={[styles.tab, activeTab === 'foot' && styles.tabActive]}>
+            <Text style={[styles.tabText, activeTab === 'foot' && styles.tabTextActive]}>FOOT</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setActiveTab('cardType')} style={[styles.tab, activeTab === 'cardType' && styles.tabActive]}>
             <Text style={[styles.tabText, activeTab === 'cardType' && styles.tabTextActive]}>CARD TYPE</Text>
@@ -427,6 +452,57 @@ const ProfileStatsScreen = ({ players = [], onClose }) => {
             />
           </View>
         )}
+
+        {activeTab === 'foot' && (
+          <View>
+            <View style={styles.footCompareContainer}>
+              <View style={styles.footHeader}>
+                <View style={styles.footCol}>
+                  <Text style={styles.footTitle}>LEFT FOOT</Text>
+                  <Text style={styles.footSub}>VERSUS</Text>
+                </View>
+                <View style={styles.footCol}>
+                  <Text style={[styles.footTitle, { textAlign: 'right' }]}>RIGHT FOOT</Text>
+                  <Text style={[styles.footSub, { textAlign: 'right' }]}>DOMINANCE</Text>
+                </View>
+              </View>
+
+              {[
+                { label: 'TOTAL CARDS', key: 'cards' },
+                { label: 'TOTAL GAMES', key: 'matches' },
+                { label: 'TOTAL GOALS', key: 'goals' },
+                { label: 'TOTAL ASSISTS', key: 'assists' },
+                { label: 'TOTAL G+A', key: 'ga' },
+                { label: 'GOALS / GM', key: 'goalsPerGm', isAvg: true, base: 'goals' },
+                { label: 'ASSISTS / GM', key: 'assistsPerGm', isAvg: true, base: 'assists' },
+                { label: 'G+A / GM', key: 'gaPerGm', isAvg: true, base: 'ga' },
+              ].map(stat => {
+                const leftRaw = stats.footStats.Left[stat.key] || (stat.isAvg ? (stats.footStats.Left[stat.base] / (stats.footStats.Left.matches || 1)) : stats.footStats.Left[stat.key]);
+                const rightRaw = stats.footStats.Right[stat.key] || (stat.isAvg ? (stats.footStats.Right[stat.base] / (stats.footStats.Right.matches || 1)) : stats.footStats.Right[stat.key]);
+                
+                const left = stat.isAvg ? leftRaw.toFixed(2) : leftRaw;
+                const right = stat.isAvg ? rightRaw.toFixed(2) : rightRaw;
+                
+                const total = Number(leftRaw) + Number(rightRaw);
+                const leftPct = total > 0 ? (Number(leftRaw) / total) * 100 : 50;
+                
+                return (
+                  <View key={stat.label} style={styles.footStatRow}>
+                    <View style={styles.footStatLabelRow}>
+                      <Text style={styles.footStatValue}>{left}</Text>
+                      <Text style={styles.footStatLabel}>{stat.label}</Text>
+                      <Text style={[styles.footStatValue, { textAlign: 'right' }]}>{right}</Text>
+                    </View>
+                    <View style={styles.footProgressBg}>
+                      <View style={[styles.footProgressFill, { width: `${leftPct}%`, backgroundColor: COLORS.accent }]} />
+                      <View style={[styles.footProgressFill, { width: `${100 - leftPct}%`, backgroundColor: COLORS.blue }]} />
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        )}
       </ScrollView>
 
       {/* Expanded List Modal */}
@@ -521,6 +597,19 @@ const styles = StyleSheet.create({
   lbRankLarge: { color: 'rgba(255,255,255,0.2)', fontSize: 16, fontWeight: '900', width: 35 },
   lbNameLarge: { color: '#fff', fontSize: 15, fontWeight: '700', flex: 1 },
   lbScoreLarge: { color: COLORS.accent, fontSize: 16, fontWeight: '900' },
+
+  // Foot Tab Styles
+  footCompareContainer: { gap: 20, marginBottom: 20 },
+  footHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+  footCol: { flex: 1 },
+  footTitle: { color: '#fff', fontSize: 18, fontWeight: '900', fontStyle: 'italic' },
+  footSub: { color: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: '900', letterSpacing: 2 },
+  footStatRow: { marginBottom: 15 },
+  footStatLabelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  footStatLabel: { color: 'rgba(255,255,255,0.4)', fontSize: 9, fontWeight: '900', letterSpacing: 1 },
+  footStatValue: { color: '#fff', fontSize: 16, fontWeight: '900', width: 60 },
+  footProgressBg: { height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.05)', flexDirection: 'row', overflow: 'hidden' },
+  footProgressFill: { height: '100%' },
 });
 
 export default ProfileStatsScreen;
