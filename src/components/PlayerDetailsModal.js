@@ -215,7 +215,7 @@ const TagsEditModal = ({ visible, onClose, tags, onAdd, onRemove }) => {
                   }
                 }}
               />
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={{ paddingHorizontal: 15 }}
                 onPress={() => {
                   if (newTag.trim()) {
@@ -230,8 +230,8 @@ const TagsEditModal = ({ visible, onClose, tags, onAdd, onRemove }) => {
             <ScrollView style={{ maxHeight: 350 }}>
               <View style={[styles.editPillsRow, { paddingBottom: 20 }]}>
                 {tags.map((tag, idx) => (
-                  <TouchableOpacity 
-                    key={idx} 
+                  <TouchableOpacity
+                    key={idx}
                     style={[styles.editPill, { borderColor: 'rgba(0, 195, 255, 0.4)', backgroundColor: 'rgba(0, 195, 255, 0.05)' }]}
                     onPress={() => onRemove(idx)}
                   >
@@ -314,7 +314,7 @@ const PerformanceItem = ({ icon, label, value, color = '#fff', isFull = false, b
 const getWFBadge = (val, type) => {
   if (!val) return null;
   const v = String(val).toLowerCase();
-  
+
   if (type === 'usage') {
     if (v.includes('almost never') || v === '1') return { text: '1', color: '#FF4444' };
     if (v.includes('rarely') || v === '2') return { text: '2', color: '#FFD700' };
@@ -806,7 +806,7 @@ const OtherVersionsView = ({ currentPlayer, allPlayers, onSelectPlayer, settings
   const { setCompareQueue } = useAppContext();
   const versions = useMemo(() => {
     if (!currentPlayer || !allPlayers) return [];
-    
+
     const normalize = (str) => str?.toLowerCase()
       .trim()
       .replace(/\./g, ' ')
@@ -815,11 +815,11 @@ const OtherVersionsView = ({ currentPlayer, allPlayers, onSelectPlayer, settings
 
     const currentName = normalize(currentPlayer.name);
     const currentParts = currentName.split(' ');
-    
+
     const filtered = allPlayers.filter(p => {
       const pId = p._id || p.id || p.playerId;
       const currentId = currentPlayer._id || currentPlayer.id || currentPlayer.playerId;
-      
+
       // 1. Identity match (Include self)
       if (pId === currentId) return true;
 
@@ -830,18 +830,18 @@ const OtherVersionsView = ({ currentPlayer, allPlayers, onSelectPlayer, settings
       if (currentName === pName) return true;
 
       const pParts = pName.split(' ');
-      
+
       // 3. Similarity match (Check first and last names)
       if (currentParts.length > 0 && pParts.length > 0) {
         const last1 = currentParts[currentParts.length - 1];
         const last2 = pParts[pParts.length - 1];
-        
+
         if (last1 === last2 && last1.length > 2) {
           const first1 = currentParts[0];
           const first2 = pParts[0];
-          const isFirstSimilar = first1 === first2 || 
-                                (first1.length === 1 && first2.startsWith(first1)) || 
-                                (first2.length === 1 && first1.startsWith(first2));
+          const isFirstSimilar = first1 === first2 ||
+            (first1.length === 1 && first2.startsWith(first1)) ||
+            (first2.length === 1 && first1.startsWith(first2));
           if (isFirstSimilar) return true;
         }
 
@@ -871,7 +871,7 @@ const OtherVersionsView = ({ currentPlayer, allPlayers, onSelectPlayer, settings
           </View>
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.compareBtn}
           onPress={() => {
             setCompareQueue(versions);
@@ -882,16 +882,16 @@ const OtherVersionsView = ({ currentPlayer, allPlayers, onSelectPlayer, settings
           <Text style={styles.compareBtnText}>COMPARE</Text>
         </TouchableOpacity>
       </View>
-      
+
       {versions.length > 0 ? (
         <ScrollView contentContainerStyle={styles.versionsGrid} showsVerticalScrollIndicator={false}>
           {versions.map((p, idx) => {
             const isCurrent = (p._id || p.id || p.playerId) === (currentPlayer._id || currentPlayer.id || currentPlayer.playerId);
             return (
-              <TouchableOpacity 
-                key={p._id || idx} 
+              <TouchableOpacity
+                key={p._id || idx}
                 style={[
-                  styles.versionCard, 
+                  styles.versionCard,
                   isCurrent && styles.versionCardCurrent,
                   { borderRadius: 0 }
                 ]}
@@ -903,13 +903,13 @@ const OtherVersionsView = ({ currentPlayer, allPlayers, onSelectPlayer, settings
                       <Text style={styles.currentBadgeText}>VIEWING</Text>
                     </View>
                   )}
-                  <PlayerCard 
-                    player={p} 
+                  <PlayerCard
+                    player={p}
                     onPress={onSelectPlayer}
                     isSelectionMode={false}
-                    settings={{ 
+                    settings={{
                       ...settings,
-                      cardSize: 'mini', 
+                      cardSize: 'mini',
                       showOverlay: true,
                       showRatings: true,
                       showName: true,
@@ -917,7 +917,7 @@ const OtherVersionsView = ({ currentPlayer, allPlayers, onSelectPlayer, settings
                       showClub: false,
                       showPlaystyle: false,
                       cardRounded: false
-                    }} 
+                    }}
                   />
                 </View>
                 <View style={styles.versionCardBody}>
@@ -1381,90 +1381,106 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
         <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ scale: zoomAnim }] }}>
-        <LinearGradient colors={gradientColors} style={styles.headerBackground}>
-          <View style={styles.safeHeader}>
-            <View style={styles.topNav}>
-              <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                <Text style={styles.closeIcon}>✕</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => onEditDetailed?.({ ...player, additionalPositions, additionalSkills, skills: coreSkills })} style={styles.editBtn}>
-                <Text style={styles.editIcon}>✏️</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.tabsContainer}>
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false} 
-                contentContainerStyle={styles.tabsScrollInner}
-              >
-                <View style={styles.modalTabs}>
-                  <TouchableOpacity style={[styles.tabBtn, modalPage === 0 && styles.tabBtnActive]} onPress={() => setModalPage(0)}>
-                    <Text style={[styles.tabText, modalPage === 0 && styles.tabTextActive]}>DETAILS</Text>
-                    {modalPage === 0 && <View style={styles.tabActiveLine} />}
-                  </TouchableOpacity>
-                  {settings.detailsShowRanking && (
-                    <TouchableOpacity style={[styles.tabBtn, modalPage === 1 && styles.tabBtnActive]} onPress={() => setModalPage(1)}>
-                      <Text style={[styles.tabText, modalPage === 1 && styles.tabTextActive]}>RANKING</Text>
-                      {modalPage === 1 && <View style={styles.tabActiveLine} />}
-                    </TouchableOpacity>
-                  )}
-                  {settings.detailsShowBuilds && (
-                    <TouchableOpacity style={[styles.tabBtn, modalPage === 2 && styles.tabBtnActive]} onPress={() => setModalPage(2)}>
-                      <Text style={[styles.tabText, modalPage === 2 && styles.tabTextActive]}>BUILDS</Text>
-                      {modalPage === 2 && <View style={styles.tabActiveLine} />}
-                    </TouchableOpacity>
-                  )}
-                  {settings.detailsShowMedia && (
-                    <TouchableOpacity style={[styles.tabBtn, modalPage === 3 && styles.tabBtnActive]} onPress={() => setModalPage(3)}>
-                      <Text style={[styles.tabText, modalPage === 3 && styles.tabTextActive]}>MEDIA</Text>
-                      {modalPage === 3 && <View style={styles.tabActiveLine} />}
-                    </TouchableOpacity>
-                  )}
-                  <TouchableOpacity style={[styles.tabBtn, modalPage === 4 && styles.tabBtnActive]} onPress={() => setModalPage(4)}>
-                    <Text style={[styles.tabText, modalPage === 4 && styles.tabTextActive]}>VERSIONS</Text>
-                    {modalPage === 4 && <View style={styles.tabActiveLine} />}
-                  </TouchableOpacity>
-                </View>
-              </ScrollView>
-            </View>
-
-            <View style={styles.heroSection}>
-              <View style={styles.cardContainer}>
-                <PlayerCard 
-                  player={player} 
-                  settings={{ 
-                    ...settings,
-                    showLabels: settings.detailsShowLabels,
-                    showClub: settings.detailsShowClub,
-                    showClubBadge: settings.detailsShowClubBadge,
-                    showNationBadge: settings.detailsShowNationBadge,
-                    showPlaystyle: settings.detailsShowPlaystyle,
-                    showRatings: settings.detailsShowRatings,
-                    showStats: false 
-                  }} 
-                />
+          <View style={styles.headerBackground}>
+            {player.bannerImage && (
+              <Image
+                source={{ uri: player.bannerImage }}
+                style={[StyleSheet.absoluteFillObject, { borderBottomLeftRadius: 30, borderBottomRightRadius: 30 }]}
+                resizeMode="cover"
+              />
+            )}
+            <LinearGradient
+              colors={player.bannerImage ? [
+                'rgba(0,0,0,0.5)',
+                'rgba(10,10,12,0.85)',
+                '#0a0a0c'
+              ] : gradientColors}
+              locations={player.bannerImage ? [0, 0.6, 1] : undefined}
+              style={[StyleSheet.absoluteFillObject, { borderBottomLeftRadius: 30, borderBottomRightRadius: 30 }]}
+            />
+            <View style={styles.safeHeader}>
+              <View style={styles.topNav}>
+                <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+                  <Text style={styles.closeIcon}>✕</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => onEditDetailed?.({ ...player, additionalPositions, additionalSkills, skills: coreSkills })} style={styles.editBtn}>
+                  <Text style={styles.editIcon}>✏️</Text>
+                </TouchableOpacity>
               </View>
-              <View style={styles.basicInfo}>
-                <View style={styles.nameHeader}>
-                  <Text style={styles.playerName}>{player.name.toUpperCase()}</Text>
-                </View>
-                <View style={styles.metaRow}>
-                  <Text style={[styles.mainPos, { color: COLORS.accent }]}>{player.position}</Text>
-                  <Text style={styles.separator}>|</Text>
-                  <Text style={[styles.playstyleText, { color: COLORS.accent }]}>{player.playstyle || 'None'}</Text>
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                  <View style={styles.idList}>
-                    <CompactInfo icon="🛡️" text={player.club} image={player.logos?.club || player.club_badge_url} />
-                    <CompactInfo icon="🏳️" text={player.nationality} image={player.logos?.country || player.nationality_flag_url} isFlag={true} />
-                    <CompactInfo icon="🏆" text={player.league} image={player.logos?.league || player.league_badge_url} />
-                    <CompactInfo icon="🆔" text={player.pesdb_id || player.playerId} />
-                    <CompactInfo icon="👤" text={`${player.age || '--'} • ${player.strongFoot || player.foot || player.strong_foot || player.strongfoot || '--'} • ${player.height || '--'}CM`} />
+
+              <View style={styles.tabsContainer}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.tabsScrollInner}
+                >
+                  <View style={styles.modalTabs}>
+                    <TouchableOpacity style={[styles.tabBtn, modalPage === 0 && styles.tabBtnActive]} onPress={() => setModalPage(0)}>
+                      <Text style={[styles.tabText, modalPage === 0 && styles.tabTextActive]}>DETAILS</Text>
+                      {modalPage === 0 && <View style={styles.tabActiveLine} />}
+                    </TouchableOpacity>
+                    {settings.detailsShowRanking && (
+                      <TouchableOpacity style={[styles.tabBtn, modalPage === 1 && styles.tabBtnActive]} onPress={() => setModalPage(1)}>
+                        <Text style={[styles.tabText, modalPage === 1 && styles.tabTextActive]}>RANKING</Text>
+                        {modalPage === 1 && <View style={styles.tabActiveLine} />}
+                      </TouchableOpacity>
+                    )}
+                    {settings.detailsShowBuilds && (
+                      <TouchableOpacity style={[styles.tabBtn, modalPage === 2 && styles.tabBtnActive]} onPress={() => setModalPage(2)}>
+                        <Text style={[styles.tabText, modalPage === 2 && styles.tabTextActive]}>BUILDS</Text>
+                        {modalPage === 2 && <View style={styles.tabActiveLine} />}
+                      </TouchableOpacity>
+                    )}
+                    {settings.detailsShowMedia && (
+                      <TouchableOpacity style={[styles.tabBtn, modalPage === 3 && styles.tabBtnActive]} onPress={() => setModalPage(3)}>
+                        <Text style={[styles.tabText, modalPage === 3 && styles.tabTextActive]}>MEDIA</Text>
+                        {modalPage === 3 && <View style={styles.tabActiveLine} />}
+                      </TouchableOpacity>
+                    )}
+                    <TouchableOpacity style={[styles.tabBtn, modalPage === 4 && styles.tabBtnActive]} onPress={() => setModalPage(4)}>
+                      <Text style={[styles.tabText, modalPage === 4 && styles.tabTextActive]}>VERSIONS</Text>
+                      {modalPage === 4 && <View style={styles.tabActiveLine} />}
+                    </TouchableOpacity>
                   </View>
+                </ScrollView>
+              </View>
+
+              <View style={styles.heroSection}>
+                <View style={styles.cardContainer}>
+                  <PlayerCard
+                    player={player}
+                    settings={{
+                      ...settings,
+                      showLabels: settings.detailsShowLabels,
+                      showClub: settings.detailsShowClub,
+                      showClubBadge: settings.detailsShowClubBadge,
+                      showNationBadge: settings.detailsShowNationBadge,
+                      showPlaystyle: settings.detailsShowPlaystyle,
+                      showRatings: settings.detailsShowRatings,
+                      showStats: false
+                    }}
+                  />
+                </View>
+                <View style={styles.basicInfo}>
+                  <View style={styles.nameHeader}>
+                    <Text style={styles.playerName}>{player.name.toUpperCase()}</Text>
+                  </View>
+                  <View style={styles.metaRow}>
+                    <Text style={[styles.mainPos, { color: COLORS.accent }]}>{player.position}</Text>
+                    <Text style={styles.separator}>|</Text>
+                    <Text style={[styles.playstyleText, { color: COLORS.accent }]}>{player.playstyle || 'None'}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <View style={styles.idList}>
+                      <CompactInfo icon="🛡️" text={player.club} image={player.logos?.club || player.club_badge_url} />
+                      <CompactInfo icon="🏳️" text={player.nationality} image={player.logos?.country || player.nationality_flag_url} isFlag={true} />
+                      <CompactInfo icon="🏆" text={player.league} image={player.logos?.league || player.league_badge_url} />
+                      <CompactInfo icon="🆔" text={player.pesdb_id || player.playerId} />
+                      <CompactInfo icon="👤" text={`${player.age || '--'} • ${player.strongFoot || player.foot || player.strong_foot || player.strongfoot || '--'} • ${player.height || '--'}CM`} />
+                    </View>
 
                     {settings.detailsShowEFHub && (
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={styles.efhubBtn}
                         onPress={() => {
                           const id = player.playerId || player.pesdb_id;
@@ -1476,8 +1492,8 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
                         }}
                       >
                         <View style={styles.efhubSquare}>
-                          <Image 
-                            source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-u_c9SzJg_Kfn9aRGf2y5-0drkCDmurWmQQ&s' }} 
+                          <Image
+                            source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-u_c9SzJg_Kfn9aRGf2y5-0drkCDmurWmQQ&s' }}
                             style={{ width: 28, height: 28, borderRadius: 8 }}
                             resizeMode="contain"
                           />
@@ -1485,343 +1501,343 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
                         <Text style={styles.efhubText}>EFHUB</Text>
                       </TouchableOpacity>
                     )}
+                  </View>
+                  {player.cardType && <Text style={styles.cardTypeText}>{player.cardType.toUpperCase()}</Text>}
                 </View>
-                {player.cardType && <Text style={styles.cardTypeText}>{player.cardType.toUpperCase()}</Text>}
               </View>
             </View>
           </View>
-        </LinearGradient>
 
-        <ScrollView style={styles.scrollContent} contentContainerStyle={styles.scrollInner} showsVerticalScrollIndicator={false}>
-          {modalPage === 0 && (
-            <View key="page-details">
-              <View style={styles.statsGrid}>
-                <StatBox label="MATCHES" value={player.matches || 0} />
-                <StatBox label="G+A TOTAL" value={(player.goals || 0) + (player.assists || 0)} color={COLORS.accent} />
-                <StatBox label="GOALS" value={player.goals || 0} />
-                <StatBox label="ASSISTS" value={player.assists || 0} />
-              </View>
-              <View style={styles.twinGrid}>
-                <View style={styles.twinColumnLeft}>
-                  <Text style={styles.sectionTitle}>EFFICIENCY</Text>
-                  <View style={styles.efficiencyCard}>
-                    <EfficiencyItem
-                      icon="soccer"
-                      label="GOALS / GM"
-                      value={player.matches > 0 ? (player.goals / player.matches).toFixed(2) : '0.00'}
-                      color={COLORS.accent}
-                    />
-                    <EfficiencyItem
-                      icon="target"
-                      label="ASSISTS / GM"
-                      value={player.matches > 0 ? (player.assists / player.matches).toFixed(2) : '0.00'}
-                      color={COLORS.blue}
-                    />
-                    <EfficiencyItem
-                      icon="flash"
-                      label="G+A / GM"
-                      value={player.matches > 0 ? ((player.goals + player.assists) / player.matches).toFixed(2) : '0.00'}
-                      color="#fff"
-                    />
-                  </View>
+          <ScrollView style={styles.scrollContent} contentContainerStyle={styles.scrollInner} showsVerticalScrollIndicator={false}>
+            {modalPage === 0 && (
+              <View key="page-details">
+                <View style={styles.statsGrid}>
+                  <StatBox label="MATCHES" value={player.matches || 0} />
+                  <StatBox label="G+A TOTAL" value={(player.goals || 0) + (player.assists || 0)} color={COLORS.accent} />
+                  <StatBox label="GOALS" value={player.goals || 0} />
+                  <StatBox label="ASSISTS" value={player.assists || 0} />
                 </View>
-                <View style={styles.twinColumnRight}>
-                  <Text style={styles.sectionTitle}>RANKING ({rankingOptions.find(o => o.id === rankingContext)?.label.toUpperCase()})</Text>
-                  <View style={styles.rankingGrid8}>
-                    <View style={styles.rankItemFirst}>
-                      <View style={styles.inlineDropdownWrapper}>
-                        <TouchableOpacity style={styles.slimFilterBtnFull} onPress={() => setShowRankDropdown(!showRankDropdown)}>
-                          <Text style={styles.slimFilterIcon}>{rankingOptions.find(o => o.id === rankingContext)?.icon}</Text>
-                          <Text style={styles.slimFilterArrow}>{showRankDropdown ? '▲' : '▼'}</Text>
-                        </TouchableOpacity>
-                        {showRankDropdown && (
-                          <View style={styles.dropdownMenuCompact}>
-                            {rankingOptions.map((opt) => (
-                              <TouchableOpacity key={opt.id} style={[styles.dropdownItem, rankingContext === opt.id && styles.dropdownItemActive]} onPress={() => { setRankingContext(opt.id); setShowRankDropdown(false); }}>
-                                <View style={styles.dropdownItemInner}>
-                                  <Text style={styles.dropdownIcon}>{opt.icon}</Text>
-                                  <Text style={[styles.dropdownText, rankingContext === opt.id && styles.dropdownTextActive]}>{opt.label}</Text>
-                                </View>
-                              </TouchableOpacity>
-                            ))}
-                          </View>
-                        )}
-                      </View>
-                      <Text style={styles.rankingTotalPill}>{rankInfo.total}</Text>
-                    </View>
-                    <View style={styles.rankItemCell}><Text style={styles.rankLabel}>MATCHES</Text><Text style={styles.rankValue}>{rankInfo.matches}</Text></View>
-                    <View style={styles.rankItemCell}><Text style={[styles.rankLabel, { color: COLORS.accent }]}>G+A</Text><Text style={[styles.rankValue, { color: COLORS.accent }]}>{rankInfo.ga}</Text></View>
-                    <View style={styles.rankItemCell}><Text style={styles.rankLabel}>GOALS</Text><Text style={styles.rankValue}>{rankInfo.goals}</Text></View>
-                    <View style={styles.rankItemCell}><Text style={[styles.rankLabel, { color: COLORS.blue }]}>ASSISTS</Text><Text style={[styles.rankValue, { color: COLORS.blue }]}>{rankInfo.assists}</Text></View>
-                    <View style={styles.rankItemCell}><Text style={styles.rankLabel}>GOALS/GM</Text><Text style={[styles.rankValue, { color: COLORS.accent }]}>{rankInfo.gpg}</Text></View>
-                    <View style={styles.rankItemCell}><Text style={[styles.rankLabel, { color: COLORS.blue }]}>AST/GM</Text><Text style={[styles.rankValue, { color: COLORS.blue }]}>{rankInfo.apg}</Text></View>
-                    <View style={styles.rankItemCell}><Text style={styles.rankLabel}>G+A / GAME</Text><Text style={[styles.rankValue, { color: COLORS.accent }]}>{rankInfo.gapg}</Text></View>
-                  </View>
-                </View>
-              </View>
-
-              <View style={styles.section}>
-                <View style={styles.sectionHeaderRow}>
-                  <Text style={styles.sectionTitle}>PLAYER SKILLS</Text>
-                  <TouchableOpacity style={styles.miniEditBtn} onPress={() => { setShowConfirm(true); setPickerType('skill'); }}><Text style={styles.miniEditIcon}>✏️</Text></TouchableOpacity>
-                </View>
-                <View style={styles.skillsWrapper}>
-                  {coreSkills.map((skill, index) => {
-                    const isSpecial = SPECIAL_SKILLS.includes(skill) || skill.startsWith('*');
-                    const cleanSkill = skill.startsWith('*') ? skill.substring(1) : skill;
-                    return (
-                      <View key={index} style={[styles.skillBadge, isSpecial && styles.specialSkillBadge]}>
-                        <Text style={[styles.skillText, isSpecial && styles.specialSkillText]}>{cleanSkill}</Text>
-                      </View>
-                    );
-                  })}
-                </View>
-
-                <View style={styles.additionalSkillsContainer}>
-                  <View style={styles.additionalHeader}>
-                    <Text style={styles.additionalTitle}>ADDITIONAL SKILLS</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
-                      <Text style={styles.additionalCount}>{additionalSkills.filter(s => s !== '').length}/5</Text>
-                      <TouchableOpacity onPress={() => { setShowPicker(true); setPickerType('skill'); }}><Text style={styles.miniEditIcon}>✏️</Text></TouchableOpacity>
+                <View style={styles.twinGrid}>
+                  <View style={styles.twinColumnLeft}>
+                    <Text style={styles.sectionTitle}>EFFICIENCY</Text>
+                    <View style={styles.efficiencyCard}>
+                      <EfficiencyItem
+                        icon="soccer"
+                        label="GOALS / GM"
+                        value={player.matches > 0 ? (player.goals / player.matches).toFixed(2) : '0.00'}
+                        color={COLORS.accent}
+                      />
+                      <EfficiencyItem
+                        icon="target"
+                        label="ASSISTS / GM"
+                        value={player.matches > 0 ? (player.assists / player.matches).toFixed(2) : '0.00'}
+                        color={COLORS.blue}
+                      />
+                      <EfficiencyItem
+                        icon="flash"
+                        label="G+A / GM"
+                        value={player.matches > 0 ? ((player.goals + player.assists) / player.matches).toFixed(2) : '0.00'}
+                        color="#fff"
+                      />
                     </View>
                   </View>
-                  <View style={styles.additionalPillsRow}>
-                    {additionalSkills.map((addedSkill, idx) => (
-                      <View key={idx} style={[styles.additionalPill, addedSkill ? styles.additionalPillActive : styles.additionalPillEmpty]}>
-                        <Text style={[styles.additionalPillText, !addedSkill && styles.additionalPillTextEmpty]} numberOfLines={1}>{addedSkill || `SLOT ${idx + 1}`}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-
-                <View style={[styles.additionalSkillsContainer, { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.03)', marginTop: 20, paddingTop: 20 }]}>
-                  <View style={styles.additionalHeader}>
-                    <Text style={[styles.additionalTitle, { color: COLORS.accent }]}>POSITION TRAINING</Text>
-                    <TouchableOpacity onPress={() => setShowPosConfirm(true)}><Text style={styles.miniEditIcon}>✏️</Text></TouchableOpacity>
-                  </View>
-                  <View style={{ marginTop: 15, alignItems: 'center' }}>
-                    <PositionGrid primaryPosition={player.position} additionalPositions={additionalPositions} />
-                  </View>
-                </View>
-
-                <View style={[styles.additionalSkillsContainer, { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.03)', marginTop: 20, paddingTop: 20 }]}>
-                  <View style={styles.additionalHeader}>
-                    <Text style={[styles.additionalTitle, { color: COLORS.blue }]}>SQUAD TAGS</Text>
-                    <TouchableOpacity onPress={() => { setPickerType('tags'); setShowPicker(true); }}>
-                      <Text style={styles.miniEditIcon}>✏️</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <View style={styles.tagsDisplayRow}>
-                    {tags.length > 0 ? (
-                      tags.map((tag, idx) => (
-                        <View key={idx} style={styles.tagPill}>
-                          <Text style={styles.tagPillText}>{tag.toUpperCase()}</Text>
+                  <View style={styles.twinColumnRight}>
+                    <Text style={styles.sectionTitle}>RANKING ({rankingOptions.find(o => o.id === rankingContext)?.label.toUpperCase()})</Text>
+                    <View style={styles.rankingGrid8}>
+                      <View style={styles.rankItemFirst}>
+                        <View style={styles.inlineDropdownWrapper}>
+                          <TouchableOpacity style={styles.slimFilterBtnFull} onPress={() => setShowRankDropdown(!showRankDropdown)}>
+                            <Text style={styles.slimFilterIcon}>{rankingOptions.find(o => o.id === rankingContext)?.icon}</Text>
+                            <Text style={styles.slimFilterArrow}>{showRankDropdown ? '▲' : '▼'}</Text>
+                          </TouchableOpacity>
+                          {showRankDropdown && (
+                            <View style={styles.dropdownMenuCompact}>
+                              {rankingOptions.map((opt) => (
+                                <TouchableOpacity key={opt.id} style={[styles.dropdownItem, rankingContext === opt.id && styles.dropdownItemActive]} onPress={() => { setRankingContext(opt.id); setShowRankDropdown(false); }}>
+                                  <View style={styles.dropdownItemInner}>
+                                    <Text style={styles.dropdownIcon}>{opt.icon}</Text>
+                                    <Text style={[styles.dropdownText, rankingContext === opt.id && styles.dropdownTextActive]}>{opt.label}</Text>
+                                  </View>
+                                </TouchableOpacity>
+                              ))}
+                            </View>
+                          )}
                         </View>
-                      ))
-                    ) : (
-                      <Text style={styles.noTagsText}>NO TAGS ADDED</Text>
-                    )}
+                        <Text style={styles.rankingTotalPill}>{rankInfo.total}</Text>
+                      </View>
+                      <View style={styles.rankItemCell}><Text style={styles.rankLabel}>MATCHES</Text><Text style={styles.rankValue}>{rankInfo.matches}</Text></View>
+                      <View style={styles.rankItemCell}><Text style={[styles.rankLabel, { color: COLORS.accent }]}>G+A</Text><Text style={[styles.rankValue, { color: COLORS.accent }]}>{rankInfo.ga}</Text></View>
+                      <View style={styles.rankItemCell}><Text style={styles.rankLabel}>GOALS</Text><Text style={styles.rankValue}>{rankInfo.goals}</Text></View>
+                      <View style={styles.rankItemCell}><Text style={[styles.rankLabel, { color: COLORS.blue }]}>ASSISTS</Text><Text style={[styles.rankValue, { color: COLORS.blue }]}>{rankInfo.assists}</Text></View>
+                      <View style={styles.rankItemCell}><Text style={styles.rankLabel}>GOALS/GM</Text><Text style={[styles.rankValue, { color: COLORS.accent }]}>{rankInfo.gpg}</Text></View>
+                      <View style={styles.rankItemCell}><Text style={[styles.rankLabel, { color: COLORS.blue }]}>AST/GM</Text><Text style={[styles.rankValue, { color: COLORS.blue }]}>{rankInfo.apg}</Text></View>
+                      <View style={styles.rankItemCell}><Text style={styles.rankLabel}>G+A / GAME</Text><Text style={[styles.rankValue, { color: COLORS.accent }]}>{rankInfo.gapg}</Text></View>
+                    </View>
                   </View>
                 </View>
 
-                <View style={[styles.additionalSkillsContainer, { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.03)', marginTop: 20, paddingTop: 20 }]}>
-                  <View style={styles.additionalHeader}>
-                    <Text style={[styles.additionalTitle, { color: COLORS.accent }]}>PERFORMANCE & ORIGIN</Text>
+                <View style={styles.section}>
+                  <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionTitle}>PLAYER SKILLS</Text>
+                    <TouchableOpacity style={styles.miniEditBtn} onPress={() => { setShowConfirm(true); setPickerType('skill'); }}><Text style={styles.miniEditIcon}>✏️</Text></TouchableOpacity>
                   </View>
-                  <View style={styles.performanceGrid}>
-                    <View style={styles.perfRow}>
-                      <PerformanceItem 
-                        icon="shoe-print" 
-                        label="WF USAGE" 
-                        value={player['Weak Foot Usage'] || player.weakFootUsage || player.weak_foot_usage} 
-                        badge={getWFBadge(player['Weak Foot Usage'] || player.weakFootUsage || player.weak_foot_usage, 'usage')}
-                      />
-                      <PerformanceItem 
-                        icon="bullseye-arrow" 
-                        label="WF ACCURACY" 
-                        value={player['Weak Foot Accuracy'] || player.weakFootAccuracy || player.weak_foot_accuracy} 
-                        badge={getWFBadge(player['Weak Foot Accuracy'] || player.weakFootAccuracy || player.weak_foot_accuracy, 'accuracy')}
-                      />
+                  <View style={styles.skillsWrapper}>
+                    {coreSkills.map((skill, index) => {
+                      const isSpecial = SPECIAL_SKILLS.includes(skill) || skill.startsWith('*');
+                      const cleanSkill = skill.startsWith('*') ? skill.substring(1) : skill;
+                      return (
+                        <View key={index} style={[styles.skillBadge, isSpecial && styles.specialSkillBadge]}>
+                          <Text style={[styles.skillText, isSpecial && styles.specialSkillText]}>{cleanSkill}</Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+
+                  <View style={styles.additionalSkillsContainer}>
+                    <View style={styles.additionalHeader}>
+                      <Text style={styles.additionalTitle}>ADDITIONAL SKILLS</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
+                        <Text style={styles.additionalCount}>{additionalSkills.filter(s => s !== '').length}/5</Text>
+                        <TouchableOpacity onPress={() => { setShowPicker(true); setPickerType('skill'); }}><Text style={styles.miniEditIcon}>✏️</Text></TouchableOpacity>
+                      </View>
                     </View>
-                    <View style={styles.perfRow}>
-                      <PerformanceItem icon="medical-bag" label="INJURY RES" value={player['Injury Resistance'] || player.injuryResistance || player.injury_resistance} />
-                      <PerformanceItem icon="heart-pulse" label="FORM" value={player.form || player.Form} />
+                    <View style={styles.additionalPillsRow}>
+                      {additionalSkills.map((addedSkill, idx) => (
+                        <View key={idx} style={[styles.additionalPill, addedSkill ? styles.additionalPillActive : styles.additionalPillEmpty]}>
+                          <Text style={[styles.additionalPillText, !addedSkill && styles.additionalPillTextEmpty]} numberOfLines={1}>{addedSkill || `SLOT ${idx + 1}`}</Text>
+                        </View>
+                      ))}
                     </View>
-                    <View style={styles.perfDivider} />
-                    <PerformanceItem
-                      icon="package-variant-closed"
-                      label="FEATURED PACK"
-                      value={(player['Featured Players'] || player.featuredPack || player.featured_pack || player.pack || '--').toUpperCase()}
-                      color={COLORS.accent}
-                      isFull
-                    />
-                    <View style={styles.perfRow}>
+                  </View>
+
+                  <View style={[styles.additionalSkillsContainer, { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.03)', marginTop: 20, paddingTop: 20 }]}>
+                    <View style={styles.additionalHeader}>
+                      <Text style={[styles.additionalTitle, { color: COLORS.accent }]}>POSITION TRAINING</Text>
+                      <TouchableOpacity onPress={() => setShowPosConfirm(true)}><Text style={styles.miniEditIcon}>✏️</Text></TouchableOpacity>
+                    </View>
+                    <View style={{ marginTop: 15, alignItems: 'center' }}>
+                      <PositionGrid primaryPosition={player.position} additionalPositions={additionalPositions} />
+                    </View>
+                  </View>
+
+                  <View style={[styles.additionalSkillsContainer, { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.03)', marginTop: 20, paddingTop: 20 }]}>
+                    <View style={styles.additionalHeader}>
+                      <Text style={[styles.additionalTitle, { color: COLORS.blue }]}>SQUAD TAGS</Text>
+                      <TouchableOpacity onPress={() => { setPickerType('tags'); setShowPicker(true); }}>
+                        <Text style={styles.miniEditIcon}>✏️</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <View style={styles.tagsDisplayRow}>
+                      {tags.length > 0 ? (
+                        tags.map((tag, idx) => (
+                          <View key={idx} style={styles.tagPill}>
+                            <Text style={styles.tagPillText}>{tag.toUpperCase()}</Text>
+                          </View>
+                        ))
+                      ) : (
+                        <Text style={styles.noTagsText}>NO TAGS ADDED</Text>
+                      )}
+                    </View>
+                  </View>
+
+                  <View style={[styles.additionalSkillsContainer, { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.03)', marginTop: 20, paddingTop: 20 }]}>
+                    <View style={styles.additionalHeader}>
+                      <Text style={[styles.additionalTitle, { color: COLORS.accent }]}>PERFORMANCE & ORIGIN</Text>
+                    </View>
+                    <View style={styles.performanceGrid}>
+                      <View style={styles.perfRow}>
+                        <PerformanceItem
+                          icon="shoe-print"
+                          label="WF USAGE"
+                          value={player['Weak Foot Usage'] || player.weakFootUsage || player.weak_foot_usage}
+                          badge={getWFBadge(player['Weak Foot Usage'] || player.weakFootUsage || player.weak_foot_usage, 'usage')}
+                        />
+                        <PerformanceItem
+                          icon="bullseye-arrow"
+                          label="WF ACCURACY"
+                          value={player['Weak Foot Accuracy'] || player.weakFootAccuracy || player.weak_foot_accuracy}
+                          badge={getWFBadge(player['Weak Foot Accuracy'] || player.weakFootAccuracy || player.weak_foot_accuracy, 'accuracy')}
+                        />
+                      </View>
+                      <View style={styles.perfRow}>
+                        <PerformanceItem icon="medical-bag" label="INJURY RES" value={player['Injury Resistance'] || player.injuryResistance || player.injury_resistance} />
+                        <PerformanceItem icon="heart-pulse" label="FORM" value={player.form || player.Form} />
+                      </View>
+                      <View style={styles.perfDivider} />
                       <PerformanceItem
-                        icon="calendar-plus"
-                        label="ADDED"
-                        value={(player['Date Added'] && player['Date Added'] !== '') ? player['Date Added'].toUpperCase() : (player.createdAt || player.dateAdded) ? new Date(player.createdAt || player.dateAdded).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : '--'}
-                        color="rgba(255,255,255,0.5)"
+                        icon="package-variant-closed"
+                        label="FEATURED PACK"
+                        value={(player['Featured Players'] || player.featuredPack || player.featured_pack || player.pack || '--').toUpperCase()}
+                        color={COLORS.accent}
+                        isFull
                       />
-                      <PerformanceItem
-                        icon="cloud-upload"
-                        label="UPDATED"
-                        value={player.lastUpdated ? new Date(player.lastUpdated).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : (player.updatedAt ? new Date(player.updatedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : '--')}
-                        color="rgba(255,255,255,0.5)"
-                      />
+                      <View style={styles.perfRow}>
+                        <PerformanceItem
+                          icon="calendar-plus"
+                          label="ADDED"
+                          value={(player['Date Added'] && player['Date Added'] !== '') ? player['Date Added'].toUpperCase() : (player.createdAt || player.dateAdded) ? new Date(player.createdAt || player.dateAdded).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : '--'}
+                          color="rgba(255,255,255,0.5)"
+                        />
+                        <PerformanceItem
+                          icon="cloud-upload"
+                          label="UPDATED"
+                          value={player.lastUpdated ? new Date(player.lastUpdated).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : (player.updatedAt ? new Date(player.updatedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : '--')}
+                          color="rgba(255,255,255,0.5)"
+                        />
+                      </View>
                     </View>
                   </View>
                 </View>
               </View>
-            </View>
+            )}
+
+            {modalPage === 1 && settings.detailsShowRanking && (
+              <View key="page-ranking">
+                <ComparisonView
+                  player={player}
+                  players={players}
+                  stat={comparisonStat}
+                  setStat={setComparisonStat}
+                  context={comparisonContext}
+                  setContext={setComparisonContext}
+                  showStatDrop={showCompStatDropdown}
+                  setShowStatDrop={setShowCompStatDropdown}
+                  showGroupDrop={showCompGroupDropdown}
+                  setShowGroupDrop={setShowCompGroupDropdown}
+                />
+              </View>
+            )}
+
+            {modalPage === 2 && settings.detailsShowBuilds && (
+              <View key="page-prog" style={{ padding: 20 }}>
+                <ProgressionView
+                  player={player}
+                  onShowSaved={(build = null) => {
+                    setEditingBuild(build);
+                    setShowSavedProgressions(true);
+                  }}
+                  onDeleteBuild={(id) => {
+                    const updatedProg = (player.progressions || []).filter(p => p.id !== id);
+                    onUpdate?.(player?._id, { progressions: updatedProg });
+                  }}
+                />
+              </View>
+            )}
+
+            {modalPage === 3 && settings.detailsShowMedia && (
+              <View key="page-media" style={{ padding: 20 }}>
+                <MediaView
+                  media={media}
+                  onAddMedia={() => setShowMediaAdd(true)}
+                  onDeleteMedia={(idx) => {
+                    const next = media.filter((_, i) => i !== idx);
+                    setMedia(next);
+                    onUpdate?.(player?._id, { media: next });
+                  }}
+                  onToggleAspect={(idx) => {
+                    const next = [...media];
+                    const current = next[idx].aspect || 'landscape';
+                    next[idx] = { ...next[idx], aspect: current === 'portrait' ? 'landscape' : 'portrait' };
+                    setMedia(next);
+                    onUpdate?.(player?._id, { media: next });
+                  }}
+                />
+              </View>
+            )}
+
+            {modalPage === 4 && (
+              <View key="page-versions" style={{ paddingHorizontal: 8, paddingTop: 10 }}>
+                <OtherVersionsView
+                  currentPlayer={player}
+                  allPlayers={players}
+                  settings={settings}
+                  onSelectPlayer={(p) => {
+                    // Switch to the selected player version
+                    onUpdate?.('switch_player', p);
+                  }}
+                />
+              </View>
+            )}
+            <View style={{ height: 40 }} />
+          </ScrollView>
+
+          {/* Global Modals & Alerts */}
+          {showPicker && pickerType === 'pos' && (
+            <PositionTrainingModal
+              visible={true}
+              player={player}
+              additionalPositions={additionalPositions}
+              onClose={() => setShowPicker(false)}
+              onUpdate={handleManagementUpdate}
+            />
           )}
 
-          {modalPage === 1 && settings.detailsShowRanking && (
-            <View key="page-ranking">
-              <ComparisonView
-                player={player}
-                players={players}
-                stat={comparisonStat}
-                setStat={setComparisonStat}
-                context={comparisonContext}
-                setContext={setComparisonContext}
-                showStatDrop={showCompStatDropdown}
-                setShowStatDrop={setShowCompStatDropdown}
-                showGroupDrop={showCompGroupDropdown}
-                setShowGroupDrop={setShowCompGroupDropdown}
-              />
-            </View>
+          {showPicker && (pickerType === 'skill' || pickerType === 'core') && (
+            <SkillSelectionModal
+              visible={true}
+              coreSkills={coreSkills}
+              additionalSkills={additionalSkills}
+              onClose={() => setShowPicker(false)}
+              onUpdate={handleManagementUpdate}
+            />
           )}
 
-          {modalPage === 2 && settings.detailsShowBuilds && (
-            <View key="page-prog" style={{ padding: 20 }}>
-              <ProgressionView
-                player={player}
-                onShowSaved={(build = null) => {
-                  setEditingBuild(build);
-                  setShowSavedProgressions(true);
-                }}
-                onDeleteBuild={(id) => {
-                  const updatedProg = (player.progressions || []).filter(p => p.id !== id);
-                  onUpdate?.(player?._id, { progressions: updatedProg });
-                }}
-              />
-            </View>
+          {showPicker && pickerType === 'tags' && (
+            <TagsEditModal
+              visible={true}
+              tags={tags}
+              onClose={() => setShowPicker(false)}
+              onAdd={(tag) => handleManagementUpdate(tag, 'add_tag')}
+              onRemove={(idx) => handleManagementUpdate(idx, 'remove_tag')}
+            />
           )}
 
-          {modalPage === 3 && settings.detailsShowMedia && (
-            <View key="page-media" style={{ padding: 20 }}>
-              <MediaView
-                media={media}
-                onAddMedia={() => setShowMediaAdd(true)}
-                onDeleteMedia={(idx) => {
-                  const next = media.filter((_, i) => i !== idx);
-                  setMedia(next);
-                  onUpdate?.(player?._id, { media: next });
-                }}
-                onToggleAspect={(idx) => {
-                  const next = [...media];
-                  const current = next[idx].aspect || 'landscape';
-                  next[idx] = { ...next[idx], aspect: current === 'portrait' ? 'landscape' : 'portrait' };
-                  setMedia(next);
-                  onUpdate?.(player?._id, { media: next });
-                }}
-              />
-            </View>
+          {showConfirm && (
+            <StylishAlert
+              visible={true}
+              title="MANAGE SKILLS"
+              message={`Do you want to edit or add skills for ${player.name}?`}
+              onCancel={() => setShowConfirm(false)}
+              onConfirm={() => { setShowConfirm(false); setShowPicker(true); }}
+            />
           )}
 
-          {modalPage === 4 && (
-            <View key="page-versions" style={{ paddingHorizontal: 8, paddingTop: 10 }}>
-              <OtherVersionsView 
-                currentPlayer={player} 
-                allPlayers={players} 
-                settings={settings}
-                onSelectPlayer={(p) => {
-                  // Switch to the selected player version
-                  onUpdate?.('switch_player', p); 
-                }}
-              />
-            </View>
+          {showPosConfirm && (
+            <StylishAlert
+              visible={true}
+              title="POSITION TRAINING"
+              message={`Do you want to train ${player.name} in new positions?`}
+              onCancel={() => setShowPosConfirm(false)}
+              onConfirm={() => { setShowPosConfirm(false); setShowPicker(true); setPickerType('pos'); }}
+            />
           )}
-          <View style={{ height: 40 }} />
-        </ScrollView>
 
-        {/* Global Modals & Alerts */}
-        {showPicker && pickerType === 'pos' && (
-          <PositionTrainingModal
-            visible={true}
-            player={player}
-            additionalPositions={additionalPositions}
-            onClose={() => setShowPicker(false)}
-            onUpdate={handleManagementUpdate}
-          />
-        )}
+          {showSavedProgressions && (
+            <SavedProgressionsModal
+              visible={true}
+              player={player}
+              initialBuild={editingBuild}
+              onClose={() => {
+                setShowSavedProgressions(false);
+                setEditingBuild(null);
+              }}
+              onUpdatePlayer={(id, data) => {
+                onUpdate?.(player?._id, data);
+              }}
+            />
+          )}
 
-        {showPicker && (pickerType === 'skill' || pickerType === 'core') && (
-          <SkillSelectionModal
-            visible={true}
-            coreSkills={coreSkills}
-            additionalSkills={additionalSkills}
-            onClose={() => setShowPicker(false)}
-            onUpdate={handleManagementUpdate}
-          />
-        )}
-
-        {showPicker && pickerType === 'tags' && (
-          <TagsEditModal
-            visible={true}
-            tags={tags}
-            onClose={() => setShowPicker(false)}
-            onAdd={(tag) => handleManagementUpdate(tag, 'add_tag')}
-            onRemove={(idx) => handleManagementUpdate(idx, 'remove_tag')}
-          />
-        )}
-
-        {showConfirm && (
-          <StylishAlert
-            visible={true}
-            title="MANAGE SKILLS"
-            message={`Do you want to edit or add skills for ${player.name}?`}
-            onCancel={() => setShowConfirm(false)}
-            onConfirm={() => { setShowConfirm(false); setShowPicker(true); }}
-          />
-        )}
-
-        {showPosConfirm && (
-          <StylishAlert
-            visible={true}
-            title="POSITION TRAINING"
-            message={`Do you want to train ${player.name} in new positions?`}
-            onCancel={() => setShowPosConfirm(false)}
-            onConfirm={() => { setShowPosConfirm(false); setShowPicker(true); setPickerType('pos'); }}
-          />
-        )}
-
-        {showSavedProgressions && (
-          <SavedProgressionsModal
-            visible={true}
-            player={player}
-            initialBuild={editingBuild}
-            onClose={() => {
-              setShowSavedProgressions(false);
-              setEditingBuild(null);
+          <MediaAddModal
+            visible={showMediaAdd}
+            onClose={() => setShowMediaAdd(false)}
+            userId={user?.uid}
+            onAdd={(url, type, aspect) => {
+              const newItem = { url, type, aspect };
+              const next = [...media, newItem];
+              setMedia(next);
+              onUpdate?.(player?._id, { media: next });
             }}
-            onUpdatePlayer={(id, data) => {
-              onUpdate?.(player?._id, data);
-            }}
           />
-        )}
-
-        <MediaAddModal
-          visible={showMediaAdd}
-          onClose={() => setShowMediaAdd(false)}
-          userId={user?.uid}
-          onAdd={(url, type, aspect) => {
-            const newItem = { url, type, aspect };
-            const next = [...media, newItem];
-            setMedia(next);
-            onUpdate?.(player?._id, { media: next });
-          }}
-        />
 
         </Animated.View>
       </View>
@@ -1838,7 +1854,7 @@ const styles = StyleSheet.create({
   modalTabs: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 24, padding: 4, gap: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   tabBtn: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 18, position: 'relative' },
   tabBtnActive: { backgroundColor: 'rgba(255,255,255,0.15)' },
-  
+
   // VERSIONS STYLES
   otherVersionsContainer: { flex: 1 },
   versionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingBottom: 30 },
@@ -1877,12 +1893,12 @@ const styles = StyleSheet.create({
   flagImage: { width: 16, height: 12, borderRadius: 2 },
   cardTypeText: { color: 'rgba(255,255,255,0.25)', fontSize: 9, fontWeight: '800', letterSpacing: 2 },
   efhubBtn: { alignItems: 'center', gap: 6, marginRight: 5, marginTop: 10 },
-  efhubSquare: { 
-    width: 48, 
-    height: 48, 
-    borderRadius: 14, 
+  efhubSquare: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     backgroundColor: 'rgba(255,255,255,0.05)',
-    justifyContent: 'center', 
+    justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',

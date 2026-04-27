@@ -30,6 +30,7 @@ const FORM_FIELDS = [
   { key: 'matches', label: 'Matches', placeholder: '0', keyboardType: 'numeric' },
   { key: 'goals', label: 'Goals', placeholder: '0', keyboardType: 'numeric' },
   { key: 'assists', label: 'Assists', placeholder: '0', keyboardType: 'numeric' },
+  { key: 'bannerImage', label: 'Hero Banner Image URL', placeholder: 'https://... (Optional)' },
 ];
 
 const DropdownField = ({ label, value, options, onSelect }) => {
@@ -82,7 +83,7 @@ const AddPlayerScreen = ({ userId, initialData, onSave, onClose }) => {
     if (!initialData) return {
       name: '', club: '', nationality: '', rating: '', cardType: 'Standard',
       position: 'CF', playstyle: 'None', matches: '0', goals: '0', assists: '0',
-      image: null, leagueImage: null,
+      image: null, leagueImage: null, bannerImage: null,
       additionalPositions: [], additionalSkills: ['', '', '', '', ''],
       weakFootUsage: 'Occasionally', weakFootAccuracy: 'Medium', injuryResistance: 'Medium', form: 'Standard',
     };
