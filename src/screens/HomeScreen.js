@@ -799,9 +799,9 @@ const HomeScreen = ({ navigation }) => {
     setIsSearchExpanded(!isSearchExpanded);
   };
 
-  if (view === 'screenshots') return <ScreenshotsScreen onBack={() => setView('list')} />;
-  if (view === 'badges') return <BadgesScreen onBack={() => setView('list')} onUpdateBadge={handleUpdateBadge} onAddBadge={handleAddBadge} onDeleteBadge={handleDeleteBadge} onMergeBadges={handleMergeBadges} />;
-  if (view === 'ranks') return <RanksScreen onBack={() => setView('list')} players={players} />;
+  if (view === 'screenshots') return <ScreenshotsScreen onClose={() => setView('list')} />;
+  if (view === 'badges') return <BadgesScreen players={players} onClose={() => setView('list')} onUpdateBadge={handleUpdateBadge} onAddBadge={handleAddBadge} onDeleteBadge={handleDeleteBadge} onMergeBadges={handleMergeBadges} />;
+  if (view === 'ranks') return <RanksScreen onClose={() => setView('list')} players={players} />;
   if (view === 'squad') return <FormationsScreen user={user} players={players} squads={[]} onSaveSquad={() => setView('list')} />;
 
   return (

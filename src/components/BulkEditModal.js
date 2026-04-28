@@ -16,6 +16,43 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
+const NumberInput = ({ label, value, onChange, placeholder }) => (
+  <View style={styles.fieldCol}>
+    <Text style={styles.fieldLabel}>{label}</Text>
+    <View style={styles.numberInputWrap}>
+      <TextInput
+        style={styles.numberInput}
+        value={String(value)}
+        onChangeText={onChange}
+        keyboardType="numeric"
+        placeholder={placeholder}
+        placeholderTextColor="rgba(255,255,255,0.2)"
+      />
+      <View style={styles.numberControls}>
+          <TouchableOpacity onPress={() => onChange(String((parseInt(value) || 0) + 1))}>
+              <MaterialCommunityIcons name="chevron-up" size={16} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => onChange(String(Math.max(0, (parseInt(value) || 0) - 1)))}>
+              <MaterialCommunityIcons name="chevron-down" size={16} color="#fff" />
+          </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+);
+
+const TextInputField = ({ label, value, onChange, placeholder, halfWidth = false }) => (
+  <View style={halfWidth ? styles.fieldCol : styles.fieldFull}>
+    <Text style={styles.fieldLabel}>{label}</Text>
+    <TextInput
+      style={styles.textInput}
+      value={value}
+      onChangeText={onChange}
+      placeholder={placeholder}
+      placeholderTextColor="rgba(255,255,255,0.2)"
+    />
+  </View>
+);
+
 const BulkEditModal = ({ visible, onClose, onApply, selectedCount }) => {
   const [formData, setFormData] = useState({
     playstyle: '-- Keep Original --',
@@ -56,43 +93,6 @@ const BulkEditModal = ({ visible, onClose, onApply, selectedCount }) => {
 
     onApply(updates);
   };
-
-  const NumberInput = ({ label, value, onChange, placeholder }) => (
-    <View style={styles.fieldCol}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={styles.numberInputWrap}>
-        <TextInput
-          style={styles.numberInput}
-          value={String(value)}
-          onChangeText={onChange}
-          keyboardType="numeric"
-          placeholder={placeholder}
-          placeholderTextColor="rgba(255,255,255,0.2)"
-        />
-        <View style={styles.numberControls}>
-            <TouchableOpacity onPress={() => onChange(String((parseInt(value) || 0) + 1))}>
-                <MaterialCommunityIcons name="chevron-up" size={16} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => onChange(String(Math.max(0, (parseInt(value) || 0) - 1)))}>
-                <MaterialCommunityIcons name="chevron-down" size={16} color="#fff" />
-            </TouchableOpacity>
-        </View>
-      </View>
-    </View>
-  );
-
-  const TextInputField = ({ label, value, onChange, placeholder, halfWidth = false }) => (
-    <View style={halfWidth ? styles.fieldCol : styles.fieldFull}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <TextInput
-        style={styles.textInput}
-        value={value}
-        onChangeText={onChange}
-        placeholder={placeholder}
-        placeholderTextColor="rgba(255,255,255,0.2)"
-      />
-    </View>
-  );
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>

@@ -317,36 +317,23 @@ const BadgesScreen = ({ players = [], user, onClose, onUpdateBadge, onAddBadge, 
             <Text style={styles.plusIcon}>+</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.toolBtn}
-            onPress={() => {
-              const data = JSON.stringify(players);
-              // Simple copy to clipboard or alert for now
-              Alert.alert('Export JSON', 'Data exported to clipboard (Simulated)');
-            }}
-          >
-            <Text style={styles.toolBtnText}>📤 EXPORT</Text>
-          </TouchableOpacity>
+          <View style={{ width: '100%', flexDirection: 'row', gap: 8, marginTop: 4 }}>
+            <View style={styles.leagueSelector}>
+              <Text style={styles.leagueIcon}>🏆</Text>
+              <Text style={styles.leagueText}>{selectedLeague}</Text>
+              <Text style={styles.chevron}>▾</Text>
+            </View>
 
-          <TouchableOpacity style={styles.toolBtn}>
-            <Text style={styles.toolBtnText}>📥 IMPORT</Text>
-          </TouchableOpacity>
-
-          <View style={styles.leagueSelector}>
-            <Text style={styles.leagueIcon}>🏆</Text>
-            <Text style={styles.leagueText}>{selectedLeague}</Text>
-            <Text style={styles.chevron}>▾</Text>
-          </View>
-
-          <View style={styles.searchBox}>
-            <Text style={styles.searchBoxIcon}>🔍</Text>
-            <TextInput 
-              style={styles.searchBoxInput} 
-              placeholder="Search club..." 
-              placeholderTextColor="rgba(255,255,255,0.2)"
-              value={search}
-              onChangeText={setSearch}
-            />
+            <View style={styles.searchBox}>
+              <Text style={styles.searchBoxIcon}>🔍</Text>
+              <TextInput 
+                style={styles.searchBoxInput} 
+                placeholder="Search club..." 
+                placeholderTextColor="rgba(255,255,255,0.2)"
+                value={search}
+                onChangeText={setSearch}
+              />
+            </View>
           </View>
         </View>
 
@@ -435,16 +422,16 @@ const styles = StyleSheet.create({
   plusBtn: { width: 40, height: 40, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   plusIcon: { color: COLORS.accent, fontSize: 20, fontWeight: 'bold' },
   
-  leagueSelector: { flex: 1, minWidth: 120, height: 40, backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, gap: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  leagueSelector: { flex: 1, height: 40, backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, gap: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   leagueIcon: { fontSize: 14 },
   leagueText: { flex: 1, color: '#fff', fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
   chevron: { color: 'rgba(255,255,255,0.3)', fontSize: 10 },
 
-  searchBox: { width: '100%', height: 46, backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 15, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, marginTop: 5, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  searchBox: { flex: 1.5, height: 40, backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   searchBoxIcon: { fontSize: 14, marginRight: 10, opacity: 0.4 },
   searchBoxInput: { flex: 1, color: '#fff', fontSize: 13, fontWeight: '600' },
 
-  filterBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20 },
+  filterBar: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20 },
   categoryTabs: { flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 15, padding: 5, gap: 5 },
   catTab: { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 10 },
   activeCatTab: { backgroundColor: COLORS.accent },
