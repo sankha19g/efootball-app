@@ -20,6 +20,7 @@ import { getSquads } from './src/services/squadService';
 import { getSettings, saveSettings } from './src/services/settingsService';
 import { getProfile } from './src/services/profileService';
 import { Animated } from 'react-native';
+import Loader from './src/components/Loader';
 
 const AnimatedIcon = ({ focused, children }) => {
   const scale = React.useRef(new Animated.Value(1)).current;
@@ -166,8 +167,9 @@ export default function App() {
   const compareValue = useMemo(() => ({ compareQueue, setCompareQueue }), [compareQueue]);
 
   if (loading) return (
-    <View style={{ flex: 1, backgroundColor: '#0a0a0c', justifyContent: 'center', alignItems: 'center' }}>
-      <Text style={{ color: COLORS.accent, fontSize: 13, fontWeight: '900', letterSpacing: 2 }}>INITIALIZING ENGINE...</Text>
+    <View style={{ flex: 1, backgroundColor: '#050608', justifyContent: 'center', alignItems: 'center' }}>
+      <Loader />
+      <Text style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: 11, fontWeight: '700', letterSpacing: 3, marginTop: 24 }}>INITIALIZING ENGINE</Text>
     </View>
   );
 

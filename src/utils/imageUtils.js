@@ -6,12 +6,12 @@ export const getPlayerBadge = (player, type = 'club', imageSource = 1) => {
   if (!player) return '';
 
   const urls = [];
-  
+
   if (type === 'club') {
     urls.push(
-      player.logos?.club,
       player.club_badge_url,
       player.clubBadgeUrl,
+      player.logos?.club,
       player.club_logo,
       player.clubLogo,
       player.club_logo_url,
@@ -24,8 +24,6 @@ export const getPlayerBadge = (player, type = 'club', imageSource = 1) => {
       player.teamBadge,
       player.club_badge,
       player.clubBadge,
-      player.club_badge_url,
-      player.clubBadgeUrl,
       player.logo_url,
       player.badge_url,
       player.logos?.clubBadge,
@@ -33,10 +31,10 @@ export const getPlayerBadge = (player, type = 'club', imageSource = 1) => {
     );
   } else if (type === 'national') {
     urls.push(
-      player.logos?.country,
       player.nationality_flag_url,
       player.nationalityFlagUrl,
       player.nationFlagUrl,
+      player.logos?.country,
       player.nation_flag,
       player.nationFlag,
       player.country_badge,
@@ -52,11 +50,11 @@ export const getPlayerBadge = (player, type = 'club', imageSource = 1) => {
     );
   } else if (type === 'league') {
     urls.push(
-      player.logos?.league,
       player.league_logo,
       player.leagueLogo,
       player.league_badge,
       player.leagueBadge,
+      player.logos?.league,
       player.logos?.leagueBadge,
       player.logos?.league_badge
     );
@@ -71,7 +69,7 @@ export const getPlayerBadge = (player, type = 'club', imageSource = 1) => {
       }
       urls.push(player.image3, player.player_image3, player.playerImage3);
     }
-    
+
     // Always fallback to default source 1 fields if selection doesn't yield anything
     urls.push(
       player.image,
@@ -83,7 +81,7 @@ export const getPlayerBadge = (player, type = 'club', imageSource = 1) => {
 
   // Find the first valid string URL
   let logoUrl = urls.find(u => u && typeof u === 'string' && u.trim().length > 5);
-  
+
   if (!logoUrl) return '';
 
   // Standardize protocol
@@ -99,4 +97,34 @@ export const getPlayerBadge = (player, type = 'club', imageSource = 1) => {
   }
 
   return logoUrl.trim();
+};
+
+export const getImageSource = (url) => {
+  if (!url || typeof url !== 'string') return null;
+
+  let logoUrl = url.trim();
+
+  // Standardize protocol
+  if (logoUrl.startsWith('//')) {
+    logoUrl = `https:${logoUrl}`;
+  } else if (!logoUrl.startsWith('http')) {
+    logoUrl = `https://${logoUrl}`;
+  }
+
+  // Handle ImgBB links
+  if (logoUrl.includes('ibb.co') && !logoUrl.includes('i.ibb.co')) {
+    logoUrl = logoUrl.replace('ibb.co/', 'i.ibb.co/');
+  }
+
+  const isWiki = logoUrl.includes('wikimedia.org') ||
+    logoUrl.includes('wikipedia.org') ||
+    logoUrl.includes('wikimedia');
+
+  if (isWiki) {
+    logoUrl = `https://images.weserv.nl/?url=${encodeURIComponent(logoUrl)}`;
+  }
+
+  return {
+    uri: logoUrl
+  };
 };

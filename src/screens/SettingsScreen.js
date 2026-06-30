@@ -22,7 +22,7 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
   const [activeTab, setActiveTab] = useState(null);
   const [isFixing, setIsFixing] = useState(false);
   const [fixProgress, setFixProgress] = useState(0);
-  const sizeMap = ['mini', 'xs', 'sm', 'md', 'lg'];
+  const sizeMap = ['mini', 'xs', 'sm', 'md', 'lg', 'tablet'];
 
   const demoPlayer = {
     id: '105553116301513',
@@ -289,13 +289,13 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
             <View style={styles.trialRow}>
               <Text style={styles.trialLabel}>Overlay Height</Text>
               <View style={styles.stepper}>
-                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({...p, overlayHeight: Math.max(0, p.overlayHeight - 5)}))}>
+                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({ ...p, overlayHeight: Math.max(0, p.overlayHeight - 5) }))}>
                   <Text style={styles.stepBtnText}>-</Text>
                 </TouchableOpacity>
                 <View style={styles.stepValBox}>
                   <Text style={styles.stepValText}>{settings.overlayHeight}%</Text>
                 </View>
-                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({...p, overlayHeight: Math.min(100, p.overlayHeight + 5)}))}>
+                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({ ...p, overlayHeight: Math.min(100, p.overlayHeight + 5) }))}>
                   <Text style={styles.stepBtnText}>+</Text>
                 </TouchableOpacity>
               </View>
@@ -304,13 +304,13 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
             <View style={styles.trialRow}>
               <Text style={styles.trialLabel}>Black Intensity</Text>
               <View style={styles.stepper}>
-                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({...p, overlayOpacity: Math.max(0, p.overlayOpacity - 0.05)}))}>
+                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({ ...p, overlayOpacity: Math.max(0, p.overlayOpacity - 0.05) }))}>
                   <Text style={styles.stepBtnText}>-</Text>
                 </TouchableOpacity>
                 <View style={styles.stepValBox}>
                   <Text style={styles.stepValText}>{Math.round(settings.overlayOpacity * 100)}%</Text>
                 </View>
-                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({...p, overlayOpacity: Math.min(1, p.overlayOpacity + 0.05)}))}>
+                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({ ...p, overlayOpacity: Math.min(1, p.overlayOpacity + 0.05) }))}>
                   <Text style={styles.stepBtnText}>+</Text>
                 </TouchableOpacity>
               </View>
@@ -319,13 +319,13 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
             <View style={styles.trialRow}>
               <Text style={styles.trialLabel}>Blur Depth</Text>
               <View style={styles.stepper}>
-                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({...p, blurIntensity: Math.max(0, p.blurIntensity - 10)}))}>
+                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({ ...p, blurIntensity: Math.max(0, p.blurIntensity - 10) }))}>
                   <Text style={styles.stepBtnText}>-</Text>
                 </TouchableOpacity>
                 <View style={styles.stepValBox}>
                   <Text style={styles.stepValText}>{settings.blurIntensity}</Text>
                 </View>
-                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({...p, blurIntensity: Math.min(100, p.blurIntensity + 10)}))}>
+                <TouchableOpacity style={styles.stepBtn} onPress={() => setSettings(p => ({ ...p, blurIntensity: Math.min(100, p.blurIntensity + 10) }))}>
                   <Text style={styles.stepBtnText}>+</Text>
                 </TouchableOpacity>
               </View>
@@ -341,8 +341,8 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
       <View style={styles.previewContainer}>
         <Text style={styles.previewLabel}>LIVE DETAILS PREVIEW</Text>
         <View style={styles.previewCardOuter}>
-          <PlayerCard 
-            player={demoPlayer} 
+          <PlayerCard
+            player={demoPlayer}
             settings={{
               ...settings,
               showLabels: settings.detailsShowLabels,
@@ -352,7 +352,7 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
               showPlaystyle: settings.detailsShowPlaystyle,
               showRatings: settings.detailsShowRatings,
               showStats: false
-            }} 
+            }}
           />
         </View>
       </View>
@@ -415,31 +415,79 @@ const SettingsScreen = ({ onClose, settings, setSettings, players = [], setPlaye
     </View>
   );
 
-  const renderGridSettings = () => (
-    <View style={styles.tabContent}>
-      <Text style={styles.tabSubheader}>GALLERY DENSITY</Text>
-      <View style={styles.gridBox}>
-        <View style={styles.rangeHeader}>
-          <Text style={styles.settingLabel}>Card Scale</Text>
-          <View style={styles.scaleBadge}>
-            <Text style={styles.scaleBadgeText}>{settings.cardSize.toUpperCase()}</Text>
+  const renderGridSettings = () => {
+    const previewNumColumns = (() => {
+      switch (settings.cardSize) {
+        case 'mini': return 5;
+        case 'xs': return 4;
+        case 'sm': return 3;
+        case 'md': return 2;
+        case 'lg': return 1;
+        case 'tablet': return 7;
+        default: return 3;
+      }
+    })();
+
+    const isTabletScale = settings.cardSize === 'tablet';
+    const gap = isTabletScale ? 15 : 8;
+    const paddingHorizontal = isTabletScale ? 15 : 12;
+    const totalGap = (previewNumColumns - 1) * gap;
+    const previewCardWidth = (width - (paddingHorizontal * 2) - totalGap) / previewNumColumns;
+
+    const cardCount = previewNumColumns === 1 ? 2 : previewNumColumns;
+    const previewPlayers = Array.from({ length: cardCount }, (_, idx) => ({
+      ...demoPlayer,
+      _id: `demo-${idx}`,
+      name: idx === 0 ? "L. MESSI" : idx === 1 ? "CR. RONALDO" : idx === 2 ? "NEYMAR JR" : idx === 3 ? "K. MBAPPÉ" : idx === 4 ? "E. HAALAND" : idx === 5 ? "J. BELLINGHAM" : "VINI JR",
+      rating: 102 - idx,
+      position: idx === 0 ? "RW" : idx === 1 ? "CF" : idx === 2 ? "LW" : idx === 3 ? "CF" : idx === 4 ? "CF" : idx === 5 ? "AM" : "LW",
+    }));
+
+    return (
+      <View style={styles.tabContent}>
+        <Text style={styles.tabSubheader}>GALLERY DENSITY</Text>
+        <View style={styles.gridBox}>
+          <View style={styles.rangeHeader}>
+            <Text style={styles.settingLabel}>Card Scale</Text>
+            <View style={styles.scaleBadge}>
+              <Text style={styles.scaleBadgeText}>{settings.cardSize.toUpperCase()}</Text>
+            </View>
+          </View>
+          <View style={styles.scaleTrack}>
+            {sizeMap.map((sz, i) => (
+              <TouchableOpacity
+                key={sz}
+                onPress={() => handleSliderChange(sz)}
+                style={[styles.scalePoint, settings.cardSize === sz && styles.scalePointActive]}
+              >
+                <Text style={[styles.scaleLabel, settings.cardSize === sz && styles.scaleLabelActive]}>{sz.toUpperCase()}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
-        <View style={styles.scaleTrack}>
-          {['mini', 'xs', 'sm', 'md', 'lg'].map((sz, i) => (
-            <TouchableOpacity
-              key={sz}
-              onPress={() => handleSliderChange(sz)}
-              style={[styles.scalePoint, settings.cardSize === sz && styles.scalePointActive]}
-            >
-              <View style={[styles.scaleDot, settings.cardSize === sz && styles.scaleDotActive]} />
-              <Text style={[styles.scaleLabel, settings.cardSize === sz && styles.scaleLabelActive]}>{sz.toUpperCase()}</Text>
-            </TouchableOpacity>
-          ))}
+
+        <View style={styles.sectionDivider} />
+
+        <Text style={styles.tabSubheader}>GRID PREVIEW</Text>
+        <View style={[
+          styles.densityPreviewContainer,
+          {
+            paddingHorizontal,
+            paddingVertical: paddingHorizontal,
+          }
+        ]}>
+          <View style={[styles.previewGrid, { gap }]}>
+            {previewPlayers.map((player) => (
+              <View key={player._id} style={{ width: previewCardWidth }}>
+                <PlayerCard player={player} settings={settings} />
+              </View>
+            ))}
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
+
 
   const renderDetailsSettings = () => (
     <View style={styles.tabContent}>
@@ -723,7 +771,8 @@ const styles = StyleSheet.create({
   scaleTrack: { flexDirection: 'row', justifyContent: 'space-between' },
   scalePoint: { flex: 1, alignItems: 'center', paddingVertical: 10 },
   scalePointActive: { backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 10 },
-  scalePointText: { color: 'rgba(255,255,255,0.2)', fontSize: 9, fontWeight: '900' },
+  scaleLabel: { color: '#fff', fontSize: 9, fontWeight: '900' },
+  scaleLabelActive: { color: '#fff', fontWeight: '900' },
 
   themeScroll: { gap: 12, paddingVertical: 5 },
   themeGrid: { gap: 12 },
@@ -782,6 +831,19 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.5,
     shadowRadius: 15
+  },
+  densityPreviewContainer: {
+    marginBottom: 30,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    marginHorizontal: -20,
+    borderWidth: 0,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  previewGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
 
   trialBox: {

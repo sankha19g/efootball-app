@@ -21,6 +21,7 @@ import { WebView } from 'react-native-webview';
 
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import YoutubePlayer from "react-native-youtube-iframe";
 import { PROGRESSION_GROUPS } from '../constants';
 import { uploadBase64Image } from '../services/playerService';
@@ -29,6 +30,7 @@ import SavedProgressionsModal from './SavedProgressionsModal';
 import { COLORS, getCardGradient, ALL_SKILLS, SPECIAL_SKILLS, PLAYER_SKILLS, POSITIONS } from '../constants';
 import PlayerCard from '../components/PlayerCard';
 import { getSecondaryPositionsFromPlayer } from '../utils/playerUtils';
+import { getImageSource } from '../utils/imageUtils';
 import ProgressionIcon from './ProgressionIcon';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -251,12 +253,26 @@ const TagsEditModal = ({ visible, onClose, tags, onAdd, onRemove }) => {
   );
 };
 
-const StatBox = ({ label, value, color = '#fff' }) => (
-  <View style={styles.statBox}>
-    <Text style={[styles.statValue, { color }]}>{value}</Text>
-    <Text style={styles.statLabel}>{label}</Text>
-  </View>
-);
+const StatBox = ({ label, value, color = '#fff', onLongPress }) => {
+  if (onLongPress) {
+    return (
+      <TouchableOpacity
+        style={styles.statBox}
+        onLongPress={onLongPress}
+        activeOpacity={0.7}
+      >
+        <Text style={[styles.statValue, { color }]}>{value}</Text>
+        <Text style={styles.statLabel}>{label}</Text>
+      </TouchableOpacity>
+    );
+  }
+  return (
+    <View style={styles.statBox}>
+      <Text style={[styles.statValue, { color }]}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+};
 
 const InfoRow = ({ label, value, icon, subValue, color = '#fff' }) => (
   <View style={styles.infoRow}>
@@ -274,7 +290,7 @@ const InfoRow = ({ label, value, icon, subValue, color = '#fff' }) => (
 const CompactInfo = ({ icon, text, image, isFlag = false }) => (
   <View style={styles.compactInfoChip}>
     {image ? (
-      <Image source={{ uri: image }} style={[styles.badgeImage, isFlag && styles.flagImage]} resizeMode="contain" />
+      <Image source={getImageSource(image)} style={[styles.badgeImage, isFlag && styles.flagImage]} resizeMode="contain" />
     ) : (
       <Text style={styles.compactInfoIcon}>{icon}</Text>
     )}
@@ -1207,6 +1223,7 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
   const [showMediaAdd, setShowMediaAdd] = useState(false);
   const [editingBuild, setEditingBuild] = useState(null);
   const [pickerType, setPickerType] = useState('skill'); // 'skill', 'pos', or 'tags'
+  const [editingStat, setEditingStat] = useState(null); // { field, label, value }
 
   const gradientColors = useMemo(() => {
     if (!player) return ['#0a0a0c', '#0a0a0c'];
@@ -1370,7 +1387,19 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
 
   }, [coreSkills, additionalSkills, additionalPositions, player?._id, onUpdate, updatePositions]);
 
-
+  const handleSaveStat = () => {
+    if (!editingStat) return;
+    const parsed = parseInt(editingStat.value, 10);
+    if (isNaN(parsed) || parsed < 0) {
+      Alert.alert('Invalid Input', 'Please enter a valid non-negative number.');
+      return;
+    }
+    const playerId = player?._id;
+    if (playerId) {
+      onUpdate?.(playerId, { [editingStat.field]: parsed });
+    }
+    setEditingStat(null);
+  };
 
   if (!player) return null;
 
@@ -1489,10 +1518,35 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
             {modalPage === 0 && (
               <View key="page-details">
                 <View style={styles.statsGrid}>
-                  <StatBox label="MATCHES" value={player.matches || 0} />
-                  <StatBox label="G+A TOTAL" value={(player.goals || 0) + (player.assists || 0)} color={COLORS.accent} />
-                  <StatBox label="GOALS" value={player.goals || 0} />
-                  <StatBox label="ASSISTS" value={player.assists || 0} />
+                  <StatBox
+                    label="MATCHES"
+                    value={player.matches || 0}
+                    onLongPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      setEditingStat({ field: 'matches', label: 'MATCHES', value: String(player.matches || 0) });
+                    }}
+                  />
+                  <StatBox
+                    label="G+A TOTAL"
+                    value={(player.goals || 0) + (player.assists || 0)}
+                    color={COLORS.accent}
+                  />
+                  <StatBox
+                    label="GOALS"
+                    value={player.goals || 0}
+                    onLongPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      setEditingStat({ field: 'goals', label: 'GOALS', value: String(player.goals || 0) });
+                    }}
+                  />
+                  <StatBox
+                    label="ASSISTS"
+                    value={player.assists || 0}
+                    onLongPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      setEditingStat({ field: 'assists', label: 'ASSISTS', value: String(player.assists || 0) });
+                    }}
+                  />
                 </View>
                 <View style={styles.twinGrid}>
                   <View style={styles.twinColumnLeft}>
@@ -1879,6 +1933,50 @@ const PlayerDetailsModal = ({ visible, player, players = [], onClose, onEditDeta
               onUpdate?.(player?._id, { media: next });
             }}
           />
+
+          {editingStat && (
+            <Modal visible={true} transparent={true} animationType="fade" onRequestClose={() => setEditingStat(null)}>
+              <View style={styles.modalOverlay}>
+                <View style={styles.alertCard}>
+                  <View style={styles.alertGlow} />
+                  <Text style={styles.alertTitle}>EDIT {editingStat.label}</Text>
+
+                  <TextInput
+                    style={{
+                      backgroundColor: 'rgba(255,255,255,0.05)',
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: 'rgba(255,255,255,0.1)',
+                      paddingHorizontal: 15,
+                      color: '#fff',
+                      fontSize: 16,
+                      fontWeight: '900',
+                      textAlign: 'center',
+                      marginVertical: 15,
+                      height: 48,
+                      width: '100%',
+                    }}
+                    keyboardType="number-pad"
+                    value={editingStat.value}
+                    onChangeText={(val) => setEditingStat({ ...editingStat, value: val })}
+                    autoFocus
+                    selectTextOnFocus
+                  />
+
+                  <View style={styles.alertButtons}>
+                    <TouchableOpacity style={styles.btnAlertCancel} onPress={() => setEditingStat(null)}>
+                      <Text style={styles.btnAlertCancelText}>CANCEL</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.btnAlertPrimary} onPress={handleSaveStat}>
+                      <LinearGradient colors={ALERT_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.btnAlertGrad}>
+                        <Text style={styles.btnAlertPrimaryText}>SAVE</Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </Modal>
+          )}
 
         </Animated.View>
       </View>

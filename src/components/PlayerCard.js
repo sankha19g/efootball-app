@@ -10,7 +10,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { COLORS, STAT_OPTIONS, getCardGradient } from '../constants';
-import { getPlayerBadge } from '../utils/imageUtils';
+import { getPlayerBadge, getImageSource } from '../utils/imageUtils';
 
 const { width } = Dimensions.get('window');
 
@@ -34,7 +34,7 @@ const PlayerCard = memo(({ player, isSelectionMode, isSelected, onToggleSelect, 
     cardRounded = true,
   } = settings;
 
-  const isMini = cardSize === 'mini';
+  const isMini = cardSize === 'mini' || cardSize === 'tablet';
   const gradientColors = useMemo(() => getCardGradient(player.cardType), [player.cardType]);
 
   const getStatValue = (slotId) => {
@@ -58,7 +58,7 @@ const PlayerCard = memo(({ player, isSelectionMode, isSelected, onToggleSelect, 
         <View style={styles.imageContainer}>
           {getPlayerBadge(player, 'player', imageSource) ? (
             <Image
-              source={{ uri: getPlayerBadge(player, 'player', imageSource) }}
+              source={getImageSource(getPlayerBadge(player, 'player', imageSource))}
               style={styles.playerImage}
               resizeMode="cover"
             />
@@ -99,14 +99,14 @@ const PlayerCard = memo(({ player, isSelectionMode, isSelected, onToggleSelect, 
         <View style={[styles.badgesColumn, isMini && { top: 35, left: 4 }]}>
           {showClubBadge && getPlayerBadge(player, 'club') ? (
             <Image
-              source={{ uri: getPlayerBadge(player, 'club') }}
+              source={getImageSource(getPlayerBadge(player, 'club'))}
               style={[styles.badge, isMini && { width: 12, height: 12 }]}
               resizeMode="contain"
             />
           ) : null}
           {showNationBadge && getPlayerBadge(player, 'national') ? (
             <Image
-              source={{ uri: getPlayerBadge(player, 'national') }}
+              source={getImageSource(getPlayerBadge(player, 'national'))}
               style={[styles.badge, isMini && { width: 12, height: 12 }]}
               resizeMode="contain"
             />

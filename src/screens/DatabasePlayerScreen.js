@@ -16,7 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { searchGlobalFirestore, getRecentGlobalPlayers, addPlayersBulk } from '../services/playerService';
 import { COLORS } from '../constants';
-import { getPlayerBadge } from '../utils/imageUtils';
+import { getPlayerBadge, getImageSource } from '../utils/imageUtils';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 3;
@@ -153,7 +153,7 @@ const DatabasePlayerScreen = ({ userId, ownersPlayers = [], onBack, onAddComplet
           isOwned && styles.playerCardOwned
         ]}
       >
-        <Image source={{ uri: item.image }} style={styles.playerImage} />
+        <Image source={getImageSource(item.image)} style={styles.playerImage} />
         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={styles.cardOverlay}>
           <View style={styles.cardTop}>
             <View style={styles.posBadge}>

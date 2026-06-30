@@ -12,6 +12,7 @@ import {
   Platform,
   UIManager,
   FlatList,
+  useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '../constants';
@@ -30,7 +31,23 @@ const { width } = Dimensions.get('window');
 import { useAppContext } from '../../App';
 
 const SquadScreen = ({ onClose }) => {
-  const { players, setPlayers, user } = useAppContext();
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 768;
+  const { players, setPlayers, user, settings } = useAppContext();
+
+  const numColumns = useMemo(() => {
+    if (settings?.cardSize === 'tablet') {
+      return 7;
+    }
+    return isTablet ? 7 : 2;
+  }, [settings?.cardSize, isTablet]);
+
+  const cardWidth = useMemo(() => {
+    const gap = 15;
+    const horizontalPadding = 30;
+    const totalGap = (numColumns - 1) * gap;
+    return (width - horizontalPadding - totalGap) / numColumns;
+  }, [width, numColumns]);
   const [search, setSearch] = useState('');
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -68,10 +85,11 @@ const SquadScreen = ({ onClose }) => {
   };
 
   const renderCard = ({ item }) => (
-    <View style={styles.cardContainer}>
+    <View style={[styles.cardContainer, { width: cardWidth }]}>
       <PlayerCard
         player={item}
         players={players}
+        settings={settings}
         isSelectionMode={isSelectionMode}
         isSelected={selectedIds.has(item._id)}
         onToggleSelect={handleToggleSelect}
@@ -148,11 +166,12 @@ const SquadScreen = ({ onClose }) => {
             </View>
           ) : (
             <FlatList
+              key={numColumns} // Force re-render when numColumns changes
               data={filteredPlayers}
               keyExtractor={item => item._id}
               extraData={[isSelectionMode, selectedIds]}
               renderItem={renderCard}
-              numColumns={2}
+              numColumns={numColumns}
               contentContainerStyle={styles.list}
               columnWrapperStyle={styles.row}
             />
@@ -245,7 +264,7 @@ const styles = StyleSheet.create({
 
   list: { padding: 15 },
   row: { justifyContent: 'space-between', marginBottom: 15 },
-  cardContainer: { width: (width - 45) / 2 },
+  cardContainer: {},
 
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
   emptyEmoji: { fontSize: 64, opacity: 0.1, marginBottom: 20 },

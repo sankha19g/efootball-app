@@ -57,6 +57,7 @@ import BadgesScreen from './BadgesScreen';
 import RanksScreen from './RanksScreen';
 import FormationsScreen from './FormationsScreen';
 import AppsScreen from './AppsScreen';
+import RandomChooserScreen from './RandomChooserScreen';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -239,6 +240,7 @@ const HomeScreen = ({ navigation }) => {
       case 'sm': return 3;
       case 'md': return 2;
       case 'lg': return 1;
+      case 'tablet': return 7;
       default: return 3;
     }
   }, [settings.cardSize]);
@@ -336,19 +338,38 @@ const HomeScreen = ({ navigation }) => {
   const handleUpdateBadge = useCallback(async (oldData, newData) => {
     if (!user) return;
     try {
-      const field = newData.type === 'national' ? 'nationality_flag_url' : 'club_badge_url';
-      const nameField = newData.type === 'national' ? 'nationality' : (newData.type === 'league' ? 'league' : 'club');
+      const field = newData.type === 'national' 
+        ? 'nationality_flag_url' 
+        : (newData.type === 'league' ? 'league_logo' : 'club_badge_url');
+      const nameField = newData.type === 'national' 
+        ? 'nationality' 
+        : (newData.type === 'league' ? 'league' : 'club');
+
+      const nestedField = newData.type === 'national' 
+        ? 'logos.country' 
+        : (newData.type === 'league' ? 'logos.league' : 'logos.club');
 
       const batch = players.filter(p => p[nameField] === oldData.name);
       const promises = batch.map(p => updatePlayer(user.uid, p._id, {
         [field]: newData.logo,
-        [nameField]: newData.name
+        [nameField]: newData.name,
+        [nestedField]: newData.logo
       }));
 
       await Promise.all(promises);
       setPlayers(prev => prev.map(p => {
         if (p[nameField] === oldData.name) {
-          return { ...p, [field]: newData.logo, [nameField]: newData.name };
+          const updatedLogos = p.logos ? { ...p.logos } : {};
+          if (newData.type === 'national') updatedLogos.country = newData.logo;
+          else if (newData.type === 'league') updatedLogos.league = newData.logo;
+          else updatedLogos.club = newData.logo;
+
+          return { 
+            ...p, 
+            [field]: newData.logo, 
+            [nameField]: newData.name,
+            logos: updatedLogos
+          };
         }
         return p;
       }));
@@ -377,16 +398,36 @@ const HomeScreen = ({ navigation }) => {
 
         const playerIds = batch.map(p => p._id);
         const update = {};
-        if (item.type === 'club') { update.club = ''; update.club_badge_url = ''; }
-        else if (item.type === 'national') { update.nationality = ''; update.nationality_flag_url = ''; }
-        else if (item.type === 'league') { update.league = ''; update.league_logo = ''; }
+        if (item.type === 'club') { 
+          update.club = ''; 
+          update.club_badge_url = ''; 
+          update['logos.club'] = ''; 
+        } else if (item.type === 'national') { 
+          update.nationality = ''; 
+          update.nationality_flag_url = ''; 
+          update['logos.country'] = ''; 
+        } else if (item.type === 'league') { 
+          update.league = ''; 
+          update.league_logo = ''; 
+          update['logos.league'] = ''; 
+        }
 
         await updatePlayersBulk(user.uid, playerIds, update);
 
         const updatedPlayers = players.map(p => {
-          if (item.type === 'club' && p.club === item.name) return { ...p, ...update };
-          if (item.type === 'national' && p.nationality === item.name) return { ...p, ...update };
-          if (item.type === 'league' && p.league === item.name) return { ...p, ...update };
+          let matches = false;
+          if (item.type === 'club' && p.club === item.name) matches = true;
+          if (item.type === 'national' && p.nationality === item.name) matches = true;
+          if (item.type === 'league' && p.league === item.name) matches = true;
+
+          if (matches) {
+            const updatedLogos = p.logos ? { ...p.logos } : {};
+            if (item.type === 'club') updatedLogos.club = '';
+            else if (item.type === 'national') updatedLogos.country = '';
+            else if (item.type === 'league') updatedLogos.league = '';
+            
+            return { ...p, ...update, logos: updatedLogos };
+          }
           return p;
         });
         setPlayers(updatedPlayers);
@@ -1313,6 +1354,7 @@ const HomeScreen = ({ navigation }) => {
                   { icon: '🔗', color: '#aaaaaa', bg: 'rgba(170,170,170,0.15)', title: 'QUICK LINKS', subtitle: 'External resources', target: 'links' },
                   { icon: '⚡', color: COLORS.accent, bg: 'rgba(0,255,136,0.15)', title: 'QUICK STATS', subtitle: 'Update match details', target: 'quick-stats' },
                   { icon: '🛡️', color: COLORS.accent, bg: 'rgba(0,255,136,0.15)', title: 'BADGES', subtitle: 'Global Logos', target: 'badges' },
+                  { icon: '🎲', color: '#00D4FF', bg: 'rgba(0,212,255,0.15)', title: 'RANDOM CHOOSER', subtitle: 'Pick random players', target: 'random-chooser' },
                 ].map((item, index) => (
                   <TouchableOpacity
                     key={index}
@@ -1444,6 +1486,18 @@ const HomeScreen = ({ navigation }) => {
       <Modal visible={view === 'apps'} animationType="slide">
         <AppsScreen
           onClose={() => setView('list')}
+        />
+      </Modal>
+
+      <Modal visible={view === 'random-chooser'} animationType="slide">
+        <RandomChooserScreen
+          onClose={() => setView('list')}
+          players={players}
+          settings={settings}
+          onPlayerPress={(player) => {
+            setSelectedPlayer(player);
+            setShowPlayerDetails(true);
+          }}
         />
       </Modal>
 

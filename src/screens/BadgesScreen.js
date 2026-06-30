@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Image, TextInput, Dimensions, Modal, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Image, TextInput, Dimensions, Modal, ActivityIndicator, Alert, FlatList } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../constants';
 import { uploadBase64Image } from '../services/playerService';
-import { getPlayerBadge } from '../utils/imageUtils';
+import { getPlayerBadge, getImageSource } from '../utils/imageUtils';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = (width - 60) / 3;
@@ -32,7 +32,7 @@ const BadgeItem = ({ item, type, isEditMode, isMergeMode, isSelected, onPress })
       )}
       {item.logo ? (
         <Image 
-          source={{ uri: item.logo }} 
+          source={getImageSource(item.logo)} 
           style={styles.badgeLogo} 
           resizeMode="contain" 
           onError={(e) => {
@@ -268,6 +268,9 @@ const BadgesScreen = ({ players = [], user, onClose, onUpdateBadge, onAddBadge, 
                     {loading ? <ActivityIndicator size="small" color="#000" /> : <Text style={styles.uploadIcon}>📷</Text>}
                   </TouchableOpacity>
                 </View>
+                <Text style={styles.inputTip}>
+                  ⚠️ Make sure to use direct image URLs (e.g. starting with i.ibb.co) rather than viewer page links (ibb.co/xxxxx), which cannot render in-app.
+                </Text>
               </View>
               <View style={styles.inputGroup}><Text style={styles.inputLabel}>SUBTEXT / LEAGUE</Text><TextInput style={styles.input} value={formData.subtext} onChangeText={(val) => setFormData({...formData, subtext: val})} placeholder="e.g. English League" placeholderTextColor="rgba(255,255,255,0.2)" /></View>
               <View style={styles.typeSelector}>{['club', 'national', 'league'].map(t => (<TouchableOpacity key={t} onPress={() => setFormData({...formData, type: t})} style={[styles.typeBtn, formData.type === t && styles.activeTypeBtn]}><Text style={[styles.typeText, formData.type === t && styles.activeTypeText]}>{t.toUpperCase()}</Text></TouchableOpacity>))}</View>
@@ -299,25 +302,27 @@ const BadgesScreen = ({ players = [], user, onClose, onUpdateBadge, onAddBadge, 
 
         {/* Toolbar Row */}
         <View style={styles.toolbar}>
-          <TouchableOpacity 
-            onPress={() => { setIsMergeMode(!isMergeMode); setIsEditMode(false); }}
-            style={[styles.toolBtn, isMergeMode && styles.activeToolBtn]}
-          >
-            <Text style={[styles.toolBtnText, isMergeMode && styles.activeToolBtnText]}>🔗 MERGE BADGES</Text>
-          </TouchableOpacity>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity 
+              onPress={() => { setIsMergeMode(!isMergeMode); setIsEditMode(false); }}
+              style={[styles.toolBtn, isMergeMode && styles.activeToolBtn]}
+            >
+              <Text style={[styles.toolBtnText, isMergeMode && styles.activeToolBtnText]}>🔗 MERGE BADGES</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity 
-            onPress={() => { setIsEditMode(!isEditMode); setIsMergeMode(false); }}
-            style={[styles.toolBtn, isEditMode && styles.activeToolBtn]}
-          >
-            <Text style={[styles.toolBtnText, isEditMode && styles.activeToolBtnText]}>✏️ EDIT BADGES</Text>
-          </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={() => { setIsEditMode(!isEditMode); setIsMergeMode(false); }}
+              style={[styles.toolBtn, isEditMode && styles.activeToolBtn]}
+            >
+              <Text style={[styles.toolBtnText, isEditMode && styles.activeToolBtnText]}>✏️ EDIT BADGES</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => setShowModal(true)} style={styles.plusBtn}>
-            <Text style={styles.plusIcon}>+</Text>
-          </TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowModal(true)} style={styles.plusBtn}>
+              <Text style={styles.plusIcon}>+</Text>
+            </TouchableOpacity>
+          </View>
 
-          <View style={{ width: '100%', flexDirection: 'row', gap: 8, marginTop: 4 }}>
+          <View style={styles.filterRow}>
             <View style={styles.leagueSelector}>
               <Text style={styles.leagueIcon}>🏆</Text>
               <Text style={styles.leagueText}>{selectedLeague}</Text>
@@ -337,36 +342,43 @@ const BadgesScreen = ({ players = [], user, onClose, onUpdateBadge, onAddBadge, 
           </View>
         </View>
 
-        {/* Categories & Toggle Row */}
-        <View style={styles.filterBar}>
-          <View style={styles.categoryTabs}>
+        {/* Categories Segmented Slider */}
+        <View style={styles.segmentedControlContainer}>
+          <View style={styles.categorySegmentedControl}>
             {['club', 'national', 'league'].map(t => (
               <TouchableOpacity 
                 key={t}
                 onPress={() => setMode(t)}
-                style={[styles.catTab, mode === t && styles.activeCatTab]}
+                style={[styles.segmentTab, mode === t && styles.activeSegmentTab]}
               >
-                <Text style={[styles.catTabText, mode === t && styles.activeCatTabText]}>
+                <Text style={[styles.segmentText, mode === t && styles.activeSegmentText]}>
                   {t.toUpperCase()}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
+        </View>
 
-          <View style={styles.missingToggles}>
-             <Text style={styles.toggleLabel}>MISSING LOGOS:</Text>
-             <TouchableOpacity style={styles.toggleItem} onPress={() => setShowMissing(true)}>
-                <View style={[styles.radio, showMissing && styles.radioActive]}>
-                  {showMissing && <View style={styles.radioInner} />}
-                </View>
-                <Text style={[styles.toggleText, showMissing && styles.toggleTextActive]}>SHOW ALL</Text>
-             </TouchableOpacity>
-             <TouchableOpacity style={styles.toggleItem} onPress={() => setShowMissing(false)}>
-                <View style={[styles.radio, !showMissing && styles.radioActive]}>
-                  {!showMissing && <View style={styles.radioInner} />}
-                </View>
-                <Text style={[styles.toggleText, !showMissing && styles.toggleTextActive]}>HIDE EMPTY</Text>
-             </TouchableOpacity>
+        {/* Missing Logos Segmented Toggle */}
+        <View style={styles.segmentedControlContainer}>
+          <View style={styles.toggleSegmentedControl}>
+            <TouchableOpacity 
+              onPress={() => setShowMissing(true)}
+              style={[styles.toggleSegmentTab, showMissing && styles.activeToggleSegmentTab]}
+            >
+              <Text style={[styles.toggleSegmentText, showMissing && styles.activeToggleSegmentText]}>
+                SHOW ALL LOGOS
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={() => setShowMissing(false)}
+              style={[styles.toggleSegmentTab, !showMissing && styles.activeToggleSegmentTab]}
+            >
+              <Text style={[styles.toggleSegmentText, !showMissing && styles.activeToggleSegmentText]}>
+                HIDE EMPTY LOGOS
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -377,27 +389,32 @@ const BadgesScreen = ({ players = [], user, onClose, onUpdateBadge, onAddBadge, 
         )}
       </LinearGradient>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.grid}>
-          {filteredData.length > 0 ? (
-            filteredData.map((item, idx) => (
-              <BadgeItem 
-                key={idx} 
-                item={item} 
-                type={mode} 
-                isEditMode={isEditMode}
-                isMergeMode={isMergeMode}
-                isSelected={selectedForMerge.has(item.name)}
-                onPress={isMergeMode ? toggleMergeSelect : handleEditClick}
-              />
-            ))
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>NO RESULTS FOUND</Text>
-            </View>
-          )}
-        </View>
-      </ScrollView>
+      <FlatList
+        data={filteredData}
+        keyExtractor={(item) => `${item.type}_${item.name}`}
+        renderItem={({ item }) => (
+          <BadgeItem 
+            item={item} 
+            type={mode} 
+            isEditMode={isEditMode}
+            isMergeMode={isMergeMode}
+            isSelected={selectedForMerge.has(item.name)}
+            onPress={isMergeMode ? toggleMergeSelect : handleEditClick}
+          />
+        )}
+        numColumns={3}
+        contentContainerStyle={styles.scrollContent}
+        columnWrapperStyle={styles.columnWrapper}
+        initialNumToRender={18}
+        maxToRenderPerBatch={18}
+        windowSize={5}
+        removeClippedSubviews={true}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>NO RESULTS FOUND</Text>
+          </View>
+        }
+      />
     </SafeAreaView>
   );
 };
@@ -414,8 +431,10 @@ const styles = StyleSheet.create({
   brandTitle: { color: '#fff', fontSize: 22, fontWeight: '900', fontStyle: 'italic', letterSpacing: 1 },
   brandSubtitle: { color: COLORS.accent, fontSize: 10, fontWeight: '800', letterSpacing: 1 },
 
-  toolbar: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 20, marginBottom: 20, alignItems: 'center' },
-  toolBtn: { paddingHorizontal: 12, paddingVertical: 10, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  toolbar: { paddingHorizontal: 20, marginBottom: 20 },
+  buttonRow: { flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 8 },
+  filterRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  toolBtn: { flex: 1, height: 40, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
   activeToolBtn: { backgroundColor: COLORS.accent + '22', borderColor: COLORS.accent },
   toolBtnText: { color: 'rgba(255,255,255,0.4)', fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
   activeToolBtnText: { color: COLORS.accent },
@@ -431,23 +450,20 @@ const styles = StyleSheet.create({
   searchBoxIcon: { fontSize: 14, marginRight: 10, opacity: 0.4 },
   searchBoxInput: { flex: 1, color: '#fff', fontSize: 13, fontWeight: '600' },
 
-  filterBar: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20 },
-  categoryTabs: { flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 15, padding: 5, gap: 5 },
-  catTab: { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 10 },
-  activeCatTab: { backgroundColor: COLORS.accent },
-  catTabText: { color: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: '900' },
-  activeCatTabText: { color: '#000' },
-
-  missingToggles: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  toggleLabel: { color: 'rgba(255,255,255,0.3)', fontSize: 8, fontWeight: '900' },
-  toggleItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  radio: { width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' },
-  radioActive: { borderColor: COLORS.accent },
-  radioInner: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.accent },
-  toggleText: { color: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: '900' },
-  toggleTextActive: { color: '#fff' },
+  segmentedControlContainer: { paddingHorizontal: 20, marginBottom: 8 },
+  categorySegmentedControl: { flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 15, padding: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  segmentTab: { flex: 1, paddingVertical: 10, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
+  activeSegmentTab: { backgroundColor: COLORS.accent },
+  segmentText: { color: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
+  activeSegmentText: { color: '#000', fontWeight: '900' },
+  toggleSegmentedControl: { flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, padding: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  toggleSegmentTab: { flex: 1, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', borderRadius: 9 },
+  activeToggleSegmentTab: { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  toggleSegmentText: { color: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
+  activeToggleSegmentText: { color: COLORS.accent, fontWeight: '900' },
 
   scrollContent: { padding: 20 },
+  columnWrapper: { gap: 10, marginBottom: 10 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   badgeCard: { width: COLUMN_WIDTH, backgroundColor: 'rgba(255,255,255,0.02)', padding: 12, borderRadius: 20, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   badgeCardEdit: { borderColor: COLORS.accent, backgroundColor: 'rgba(57, 255, 20, 0.05)' },
@@ -480,6 +496,7 @@ const styles = StyleSheet.create({
   input: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, height: 50, paddingHorizontal: 15, color: '#fff', fontWeight: '600', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   uploadRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   miniUploadBtn: { width: 50, height: 50, backgroundColor: COLORS.accent, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  inputTip: { color: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: '600', marginTop: 6, lineHeight: 11 },
   uploadIcon: { fontSize: 20 },
   typeSelector: { flexDirection: 'row', gap: 10, marginTop: 10, marginBottom: 30 },
   typeBtn: { flex: 1, height: 40, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.02)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
